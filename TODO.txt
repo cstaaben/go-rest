@@ -1,0 +1,12 @@
+- [ ] Add README
+- [ ] Add cobra & viper
+  - [ ] config file
+  - [ ] subcommands for CLI use without TUI
+- [ ] UI layout
+  - [ ] environment selection
+  - [x] requests panel
+  - [ ] request editor panel
+  - [ ] response panel
+  - [?] help panel
+- [ ] Set subcomponent width as percentage of total window
+  - [ ] establish minimum sizes

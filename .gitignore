@@ -1,2 +1,10 @@
 coverage.txt
+# release binaries
 dist/
+# local development 
+logs/
+bin/
+vendor/
+# test data under the example directory
+example/data/requests/*
+example/data/environments/*

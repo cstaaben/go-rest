@@ -1,13 +1,13 @@
-# bubbletea-app-template
+# go-rest
 
-A template repository to create [Bubbletea][bubbletea] apps.
+A simple TUI for a command-line REST client.
 
 ## Included
 
 - a sample app that does nothing, so it includes all dependencies:
-	- [bubbletea][]
-	- [bubbles][]
-	- [lipgloss][]
+  - [bubbletea][]
+  - [bubbles][]
+  - [lipgloss][]
 - github actions workflows for build, test, lint and release
 - [GoReleaser][goreleaser] configs
 - [golangci-lint][lint] configs

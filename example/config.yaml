@@ -1,0 +1,7 @@
+---
+data_dir: $CODE/src/github.com/cstaaben/go-rest/example/data
+default_env: example
+log:
+  level: debug
+  path: $CODE/src/github.com/cstaaben/go-rest/logs/test.log
+  format: text
