@@ -40,6 +40,13 @@ func Build() error {
 
 // 'go run' with the example config
 func Run() error {
+	_, err := os.Stat("./logs")
+	if os.IsNotExist(err) {
+		if err = os.Mkdir("./logs", 0755); err != nil {
+			return fmt.Errorf("creating logs dir: %w", err)
+		}
+	}
+
 	mg.SerialDeps(Tidy, Vendor, Lint)
 	return sh.RunV(goCmd, "run", "./cmd/go-rest", "--config", "./example/config.yaml")
 }

@@ -37,12 +37,14 @@ var _ tea.Model = (*Model)(nil)
 
 func New() *Model {
 	m := &Model{
-		Keys:         keymap.Default,
-		Help:         help.New(help.WithKeyMap(keymap.Default)),
-		Environments: environments.New(config.DataDir()),
-		Requests:     requests.New(config.DataDir()),
-		Editor:       editor.New(),
-		Response:     response.New(),
+		CurrentTarget: target.RequestsTarget,
+		CurrentView:   target.ClientView,
+		Keys:          keymap.Default,
+		Help:          help.New(help.WithKeyMap(keymap.Default)),
+		Environments:  environments.New(config.DataDir()),
+		Requests:      requests.New(config.DataDir()),
+		Editor:        editor.New(),
+		Response:      response.New(),
 	}
 
 	return m
@@ -65,6 +67,7 @@ type Model struct {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.SetWindowTitle("go-rest"),
+		target.ChangeFocus(m.CurrentView, m.CurrentTarget),
 	)
 }
 

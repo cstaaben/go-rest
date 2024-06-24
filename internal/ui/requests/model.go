@@ -29,6 +29,7 @@ import (
 	"github.com/cstaaben/go-rest/internal/request"
 	"github.com/cstaaben/go-rest/internal/ui/styles"
 	"github.com/muesli/reflow/wordwrap"
+	"github.com/cstaaben/go-rest/internal/model/target"
 )
 
 const (
@@ -108,6 +109,9 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var commands []tea.Cmd
 	switch msg := msg.(type) {
+	case target.FocusMsg:
+		m.Focused = msg.Target == target.RequestsTarget
+		slog.Debug("requests focused")
 	case tea.WindowSizeMsg:
 		h, v := styles.FocusedBorder.GetFrameSize()
 		m.List.SetSize(msg.Width-h, msg.Height-v)

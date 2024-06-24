@@ -1,10 +1,6 @@
 package target
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -32,10 +28,6 @@ var targets = map[View][]Target{
 		EnvironmentsTarget,
 		EnvEditorTarget,
 	},
-}
-
-func init() {
-	_ = json.NewEncoder(os.Stdout).Encode(targets)
 }
 
 type (
@@ -72,13 +64,13 @@ func (v View) String() string {
 }
 
 func NextTarget(v View, t Target) Target {
-	if v == EnvironmentView {
-		t -= Target(len(targets[ClientView]))
-		fmt.Println("t: ", t)
-	}
-
 	if t == targets[v][len(targets[v])-1] {
 		return targets[v][0]
+	}
+
+	if v == EnvironmentView {
+		t -= Target(len(targets[ClientView]))
+		return targets[v][t] + 1
 	}
 
 	inc := int64(targets[v][t]) + 1
@@ -89,12 +81,13 @@ func NextTarget(v View, t Target) Target {
 }
 
 func PrevTarget(v View, t Target) Target {
-	if v == EnvironmentView {
-		t -= Target(len(targets[ClientView]) - 1)
+	if t == targets[v][0] {
+		return targets[v][len(targets[v])-1]
 	}
 
-	if t == 0 {
-		return Target(len(targets[v]) - 1)
+	if v == EnvironmentView {
+		t -= Target(len(targets[ClientView]))
+		return targets[v][t] - 1
 	}
 
 	dec := int64(targets[v][t]) - 1

@@ -43,12 +43,12 @@ func TestNextTarget(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual := target.NextTarget(tc.view, tc.currentTarget)
-			assert.Equal(t, tc.expected, actual)
-		})
+		t.Run(
+			tc.name, func(t *testing.T) {
+				actual := target.NextTarget(tc.view, tc.currentTarget)
+				assert.Equal(t, tc.expected, actual)
+			},
+		)
 	}
 }
 
@@ -88,12 +88,12 @@ func TestPreviousTarget(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual := target.PrevTarget(tc.view, tc.currentTarget)
-			assert.Equal(t, tc.expected, actual)
-		})
+		t.Run(
+			tc.name, func(t *testing.T) {
+				actual := target.PrevTarget(tc.view, tc.currentTarget)
+				assert.Equal(t, tc.expected, actual)
+			},
+		)
 	}
 }
 
