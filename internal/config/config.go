@@ -135,10 +135,6 @@ func DataDir() string {
 	return config.DataDir
 }
 
-func DefaultEnv() string {
-	return config.DefaultEnv
-}
-
 func ColorScheme() string {
 	return config.ColorScheme
 }

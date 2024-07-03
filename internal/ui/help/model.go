@@ -3,6 +3,7 @@ package help
 import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/ui/styles"
 )
@@ -36,7 +37,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 // Update processes messages and returns the updated Model and a command.
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Help, cmd = m.Help.Update(msg)
 	return m, cmd

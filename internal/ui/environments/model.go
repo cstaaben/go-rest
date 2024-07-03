@@ -5,16 +5,9 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/cstaaben/go-rest/internal/environment"
 )
-
-type Option func(*Model)
-
-func WithDefaultEnvironment(env string) Option {
-	return func(m *Model) {
-		m.defaultEnv = env
-	}
-}
 
 type Model struct {
 	defaultEnv string
@@ -24,14 +17,10 @@ type Model struct {
 	Selected     *environment.Environment
 }
 
-func New(dataDir string, opts ...Option) *Model {
+func New(dataDir string) *Model {
 	m := &Model{
 		dataDir:      dataDir,
 		Environments: make([]*environment.Environment, 0),
-	}
-
-	for _, optFunc := range opts {
-		optFunc(m)
 	}
 
 	return m
@@ -67,8 +56,9 @@ func (model *Model) Init() tea.Cmd {
 
 // Update is called when a message is received. Use it to inspect messages
 // and, in response, update the model and/or send a command.
-func (model *Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
-	panic("not implemented") // TODO: Implement
+func (model *Model) Update(_ tea.Msg) (*Model, tea.Cmd) {
+	// TODO: Implement
+	return model, nil
 }
 
 // View renders the program's UI, which is just a string. The view is

@@ -22,7 +22,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/signal"
 	"path"
@@ -30,9 +29,11 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	flag "github.com/spf13/pflag"
+	"log/slog"
+
 	"github.com/cstaaben/go-rest/internal/config"
 	"github.com/cstaaben/go-rest/internal/model"
-	flag "github.com/spf13/pflag"
 )
 
 func init() {
@@ -58,7 +59,7 @@ func main() {
 	}
 	defer closeFn()
 
-	slog.Debug("Starting client")
+	slog.Debug("Starting client", slog.String("colorscheme", config.ColorScheme()))
 
 	p := tea.NewProgram(model.New(), tea.WithAltScreen(), tea.WithContext(ctx))
 	if _, err := p.Run(); err != nil {

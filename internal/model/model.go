@@ -20,12 +20,18 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"log/slog"
+
 	"github.com/cstaaben/go-rest/internal/config"
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
 	"github.com/cstaaben/go-rest/internal/ui/editor"
+	"github.com/cstaaben/go-rest/internal/ui/enveditor"
 	"github.com/cstaaben/go-rest/internal/ui/environments"
 	"github.com/cstaaben/go-rest/internal/ui/help"
 	"github.com/cstaaben/go-rest/internal/ui/notification"
@@ -37,14 +43,12 @@ var _ tea.Model = (*Model)(nil)
 
 func New() *Model {
 	m := &Model{
-		CurrentTarget: target.RequestsTarget,
-		CurrentView:   target.ClientView,
-		Keys:          keymap.Default,
-		Help:          help.New(help.WithKeyMap(keymap.Default)),
-		Environments:  environments.New(config.DataDir()),
-		Requests:      requests.New(config.DataDir()),
-		Editor:        editor.New(),
-		Response:      response.New(),
+		Keys:         keymap.Default,
+		Help:         help.New(help.WithKeyMap(keymap.Default)),
+		Environments: environments.New(config.DataDir()),
+		Requests:     requests.New(config.DataDir()),
+		Editor:       editor.New(),
+		Response:     response.New(),
 	}
 
 	return m
@@ -57,6 +61,7 @@ type Model struct {
 
 	Help         *help.Model
 	Environments *environments.Model
+	EnvEditor    *enveditor.Model
 	Requests     *requests.Model
 	Editor       *editor.Model
 	Response     *response.Model
@@ -67,7 +72,7 @@ type Model struct {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.SetWindowTitle("go-rest"),
-		target.ChangeFocus(m.CurrentView, m.CurrentTarget),
+		target.ChangeFocus(target.ClientView, target.RequestsTarget),
 	)
 }
 
@@ -77,12 +82,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var commands []tea.Cmd
 
 	switch msg := msg.(type) {
+	case target.FocusMsg:
+		// focus new target
+		commands = append(commands, m.updateFocus(msg))
+		// update current target ref
+		m.CurrentView = msg.View
+		m.CurrentTarget = msg.Target
+		// TODO: in subcomponents, call function to update help keymap
 	case tea.WindowSizeMsg:
-		// TODO: handle resizing of subcomponents by passing a percentage as the message
-		reqModel, reqCmd := m.Requests.Update(msg)
-		m.Requests = reqModel
-
-		commands = append(commands, reqCmd)
+		// TODO: update ALL subcomponents
+		// TODO: handle resizing in subcomponents, using a percentage of total window size
+		commands = append(commands, m.updateAllComponents(msg)...)
 	case tea.KeyMsg:
 		commands = append(commands, m.handleKey(msg))
 	case notification.Notification:
@@ -91,33 +101,107 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		panic("need to handle error: " + msg.Error())
 	}
 
-	r, reqCmd := m.Requests.Update(msg)
-	m.Requests = r
-	commands = append(commands, reqCmd)
-	// h, helpCmd := m.Help.Update(msg)
-	// m.Help = h.(*help.Model)
-
 	return m, tea.Batch(commands...)
+}
+
+func (m *Model) updateAllComponents(msg tea.WindowSizeMsg) []tea.Cmd {
+	var helpCmd tea.Cmd
+	m.Help, helpCmd = m.Help.Update(msg)
+
+	var envCmd tea.Cmd
+	m.Environments, envCmd = m.Environments.Update(msg)
+
+	var envEditorCmd tea.Cmd
+	m.EnvEditor, envEditorCmd = m.EnvEditor.Update(msg)
+
+	var reqCmd tea.Cmd
+	m.Requests, reqCmd = m.Requests.Update(msg)
+
+	var editorCmd tea.Cmd
+	m.Editor, editorCmd = m.Editor.Update(msg)
+
+	var respCmd tea.Cmd
+	m.Response, respCmd = m.Response.Update(msg)
+
+	return []tea.Cmd{
+		helpCmd,
+		envCmd,
+		envEditorCmd,
+		reqCmd,
+		editorCmd,
+		respCmd,
+	}
+}
+
+func (m *Model) updateFocus(msg target.FocusMsg) tea.Cmd {
+	slog.Debug(
+		"updating focused target",
+		slog.Any("message", msg),
+		slog.String("msg_type", fmt.Sprintf("%T", msg)),
+		slog.String("current_view", m.CurrentView.String()),
+		slog.String("current_target", m.CurrentTarget.String()),
+	)
+
+	var cmd tea.Cmd
+	// always update the help output to reflect the current target
+	m.Help, cmd = m.Help.Update(msg)
+	cmds := []tea.Cmd{cmd}
+	// un-focus the current target
+	cmd = m.updateComponent(m.CurrentView, m.CurrentTarget, msg)
+	cmds = append(cmds, cmd)
+	// focus the new target
+	cmd = m.updateComponent(msg.View, msg.Target, msg)
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
+}
+
+func (m *Model) updateComponent(view target.View, t target.Target, msg tea.Msg) tea.Cmd {
+	var targetCmd tea.Cmd
+
+	switch view {
+	case target.ClientView:
+		switch t {
+		case target.RequestsTarget:
+			m.Requests, targetCmd = m.Requests.Update(msg)
+		case target.EditorTarget:
+			m.Editor, targetCmd = m.Editor.Update(msg)
+		case target.ResponseTarget:
+			m.Response, targetCmd = m.Response.Update(msg)
+		}
+	case target.EnvironmentView:
+		switch t {
+		case target.EnvironmentsTarget:
+			m.Environments, targetCmd = m.Environments.Update(msg)
+		case target.EnvEditorTarget:
+			m.EnvEditor, targetCmd = m.EnvEditor.Update(msg)
+		}
+	}
+
+	return targetCmd
 }
 
 // View renders the program's UI, which is just a string. The view is
 // rendered after every Update.
 func (m *Model) View() string {
-	// s := lipgloss.JoinHorizontal(lipgloss.Top, m.Requests.View(), m.Editor.View())
+	s := lipgloss.JoinHorizontal(lipgloss.Top, m.Requests.View(), m.Editor.View())
 	// s = lipgloss.JoinVertical(lipgloss.Left, s, m.Help.View())
-	return m.Requests.View()
+	return s
 }
 
 func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, m.Keys.Quit):
+		slog.Debug("quit key pressed")
 		return tea.Quit
 	case key.Matches(msg, m.Keys.NextPane):
 		m.CurrentTarget = target.NextTarget(m.CurrentView, m.CurrentTarget)
-		return nil
+		slog.Debug("next pane", slog.Any("updated_target", m.CurrentTarget))
+		return target.ChangeFocus(m.CurrentView, m.CurrentTarget)
 	case key.Matches(msg, m.Keys.PreviousPane):
 		m.CurrentTarget = target.PrevTarget(m.CurrentView, m.CurrentTarget)
-		return nil
+		slog.Debug("previous pane", slog.Any("updated_target", m.CurrentTarget))
+		return target.ChangeFocus(m.CurrentView, m.CurrentTarget)
 	}
 
 	// TODO: handle key presses for subcomponents

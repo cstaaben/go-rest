@@ -2,25 +2,17 @@ package styles
 
 import (
 	"github.com/charmbracelet/lipgloss"
+
 	"github.com/cstaaben/go-rest/internal/config"
 )
 
-func init() {
-	switch config.ColorScheme() {
-	case "default":
-		Colors = defaultColors
-	default:
-		Colors = defaultColors
-	}
-}
-
 var (
-	Base          = lipgloss.NewStyle().Padding(1, 2).Foreground(Colors.Foreground)
+	Base          = lipgloss.NewStyle().Padding(1, 2).Foreground(Colors().Foreground)
 	BorderPanel   = lipgloss.NewStyle().Inherit(Base).Border(lipgloss.RoundedBorder(), true)
-	FocusedBorder = lipgloss.NewStyle().Inherit(BorderPanel).BorderForeground(Colors.FocusHighlight)
-	Title         = lipgloss.NewStyle().Padding(0, 1).Bold(true).Inherit(Base)
+	FocusedBorder = lipgloss.NewStyle().Inherit(BorderPanel).BorderForeground(Colors().FocusHighlight)
+	Title         = lipgloss.NewStyle().Padding(0, 1).Bold(true).Align(lipgloss.Center).Inherit(Base)
 
-	Colors        = ColorScheme{}
+	colors        *ColorScheme
 	defaultColors = ColorScheme{
 		FocusHighlight: lipgloss.AdaptiveColor{
 			Light: "#5fffff",
@@ -36,4 +28,19 @@ var (
 type ColorScheme struct {
 	FocusHighlight lipgloss.AdaptiveColor
 	Foreground     lipgloss.AdaptiveColor
+}
+
+func Colors() *ColorScheme {
+	if colors != nil {
+		return colors
+	}
+
+	switch config.ColorScheme() {
+	case "default":
+		colors = &defaultColors
+	default:
+		colors = &defaultColors
+	}
+
+	return colors
 }

@@ -10,3 +10,7 @@
   - [?] help panel
 - [ ] Set subcomponent width as percentage of total window
   - [ ] establish minimum sizes
+- [ ] copy example requests from work laptop
+- [ ] prevent "q" from quitting
+    - 
+- [ ] load color schemas from config file
