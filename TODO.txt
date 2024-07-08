@@ -12,5 +12,5 @@
   - [ ] establish minimum sizes
 - [ ] copy example requests from work laptop
 - [ ] prevent "q" from quitting
-    - 
+    - working as of ee270ab28d9be9af57fda29e24633ffaaa38b55a
 - [ ] load color schemas from config file

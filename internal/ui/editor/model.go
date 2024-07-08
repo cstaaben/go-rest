@@ -88,7 +88,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.Style = m.Style.Height(m.Style.GetHeight()).
 			Width(m.Style.GetWidth())
 	case target.FocusMsg:
-		m.Focused = msg.Target == target.EditorTarget
+		m.Focused = msg.FocusedTarget == target.EditorTarget && msg.UnfocusedTarget != target.EditorTarget
 
 		// update style based on focus change
 		s := lipgloss.NewStyle().Width(m.Style.GetWidth()).Height(m.Style.GetHeight())

@@ -28,8 +28,10 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 	"log/slog"
 
+	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
 	"github.com/cstaaben/go-rest/internal/request"
+	"github.com/cstaaben/go-rest/internal/ui/help"
 	"github.com/cstaaben/go-rest/internal/ui/styles"
 )
 
@@ -71,6 +73,7 @@ type Model struct {
 	List    list.Model
 	Focused bool
 	Style   lipgloss.Style
+	Keymap  keymap.KeyMap
 }
 
 // New creates a new Model and applies the provided options.
@@ -119,16 +122,15 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var commands []tea.Cmd
 	switch msg := msg.(type) {
 	case target.FocusMsg:
-		m.Focused = msg.Target == target.RequestsTarget
+		m.Focused = msg.FocusedTarget == target.RequestsTarget && msg.UnfocusedTarget != target.RequestsTarget
+		slog.Debug("updating requests focus", slog.Any("message", msg), slog.Bool("focused", m.Focused))
 		if m.Focused {
 			m.Style = styles.FocusedBorder.Width(m.Style.GetWidth()).Height(m.Style.GetHeight())
-			slog.Debug("requests using focused border")
 		} else {
 			m.Style = styles.BorderPanel.Width(m.Style.GetWidth()).Height(m.Style.GetHeight())
-			slog.Debug("requests using border panel")
 		}
 
-		// TODO: update help keymap
+		commands = append(commands, help.UpdateKeymap(m.Keymap))
 	case tea.WindowSizeMsg:
 		h, v := styles.FocusedBorder.GetFrameSize()
 		m.List.SetSize(defaultListWidth-h, msg.Height-v)

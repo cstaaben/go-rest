@@ -72,7 +72,7 @@ type Model struct {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.SetWindowTitle("go-rest"),
-		target.ChangeFocus(target.ClientView, target.RequestsTarget),
+		target.ChangeFocus(target.ClientView, target.RequestsTarget, target.ClientView, target.ResponseTarget),
 	)
 }
 
@@ -85,9 +85,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case target.FocusMsg:
 		// focus new target
 		commands = append(commands, m.updateFocus(msg))
-		// update current target ref
-		m.CurrentView = msg.View
-		m.CurrentTarget = msg.Target
 		// TODO: in subcomponents, call function to update help keymap
 	case tea.WindowSizeMsg:
 		// TODO: update ALL subcomponents
@@ -142,18 +139,18 @@ func (m *Model) updateFocus(msg target.FocusMsg) tea.Cmd {
 		slog.String("current_target", m.CurrentTarget.String()),
 	)
 
-	var cmd tea.Cmd
-	// always update the help output to reflect the current target
-	m.Help, cmd = m.Help.Update(msg)
-	cmds := []tea.Cmd{cmd}
-	// un-focus the current target
-	cmd = m.updateComponent(m.CurrentView, m.CurrentTarget, msg)
-	cmds = append(cmds, cmd)
-	// focus the new target
-	cmd = m.updateComponent(msg.View, msg.Target, msg)
-	cmds = append(cmds, cmd)
+	// focus the new target and un-focus the previous
+	commands := []tea.Cmd{
+		m.updateComponent(msg.UnfocusedView, msg.UnfocusedTarget, msg),
+		m.updateComponent(msg.FocusedView, msg.FocusedTarget, msg),
+	}
 
-	return tea.Batch(cmds...)
+	// always update the help output to reflect the current target
+	var cmd tea.Cmd
+	m.Help, cmd = m.Help.Update(msg)
+	commands = append(commands, cmd)
+
+	return tea.Batch(commands...)
 }
 
 func (m *Model) updateComponent(view target.View, t target.Target, msg tea.Msg) tea.Cmd {
@@ -195,13 +192,15 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		slog.Debug("quit key pressed")
 		return tea.Quit
 	case key.Matches(msg, m.Keys.NextPane):
+		prevTarget := m.CurrentTarget
 		m.CurrentTarget = target.NextTarget(m.CurrentView, m.CurrentTarget)
 		slog.Debug("next pane", slog.Any("updated_target", m.CurrentTarget))
-		return target.ChangeFocus(m.CurrentView, m.CurrentTarget)
+		return target.ChangeFocus(m.CurrentView, m.CurrentTarget, m.CurrentView, prevTarget)
 	case key.Matches(msg, m.Keys.PreviousPane):
+		prevTarget := m.CurrentTarget
 		m.CurrentTarget = target.PrevTarget(m.CurrentView, m.CurrentTarget)
 		slog.Debug("previous pane", slog.Any("updated_target", m.CurrentTarget))
-		return target.ChangeFocus(m.CurrentView, m.CurrentTarget)
+		return target.ChangeFocus(m.CurrentView, m.CurrentTarget, m.CurrentView, prevTarget)
 	}
 
 	// TODO: handle key presses for subcomponents
