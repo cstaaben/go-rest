@@ -20,15 +20,19 @@
 package requests
 
 import (
-	"log/slog"
-	"strings"
+	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cstaaben/go-rest/internal/request"
-	"github.com/cstaaben/go-rest/internal/ui/styles"
 	"github.com/muesli/reflow/wordwrap"
+	"log/slog"
+
+	"github.com/cstaaben/go-rest/internal/model/keymap"
+	"github.com/cstaaben/go-rest/internal/model/target"
+	"github.com/cstaaben/go-rest/internal/request"
+	"github.com/cstaaben/go-rest/internal/ui/help"
+	"github.com/cstaaben/go-rest/internal/ui/styles"
 )
 
 const (
@@ -62,64 +66,85 @@ const (
 // Model is the collection of requests loaded by the user and TUI components to display them.
 type Model struct {
 	// data
+	dataDir  string
 	Selected *request.Request
 	Requests []*request.Group
 	// ui
 	List    list.Model
 	Focused bool
+	Style   lipgloss.Style
+	Keymap  keymap.KeyMap
 }
 
 // New creates a new Model and applies the provided options.
 func New(dataDir string) *Model {
-	m := new(Model)
-
-	var err error
-	m.Requests, err = request.LoadFrom(dataDir)
-	if err != nil {
-		slog.Warn("failed to load requests", slog.Any("error", err))
-	}
-
-	items := make([]list.Item, 0)
-	for _, group := range m.Requests {
-		if strings.EqualFold(group.Name, request.UnsortedName) {
-			items = append(items, group.ListItems()...)
-		} else {
-			items = append(items, group)
-		}
-	}
-
 	h, v := styles.FocusedBorder.GetFrameSize()
-	m.List = list.New(items, list.NewDefaultDelegate(), defaultListWidth-h, defaultListHeight-v)
+	m := &Model{
+		dataDir: dataDir,
+		List:    list.New([]list.Item{}, list.NewDefaultDelegate(), defaultListWidth-h, defaultListHeight-v),
+		Style:   styles.BorderPanel,
+	}
+
 	m.List.Title = "Requests"
 	m.List.SetSize(defaultListWidth-h, defaultListHeight-v)
 	m.List.Styles.Title = styles.Title // .Padding(0, 17, 1, 17)
-	m.List.Styles.TitleBar = lipgloss.NewStyle().Width(m.List.Width()).Align(lipgloss.Center)
-	m.List.Styles.StatusBar = lipgloss.NewStyle().Width(m.List.Width()).Align(lipgloss.Center)
+	m.List.Styles.TitleBar = lipgloss.NewStyle().Width(m.List.Width()).Inherit(styles.Title)
+	m.List.Styles.StatusBar = lipgloss.NewStyle().Width(m.List.Width()).Inherit(styles.Title)
 
 	return m
 }
 
 // Init sets the content of the viewport to the list of requests.
 func (m *Model) Init() tea.Cmd {
-	return nil
+	return func() tea.Msg {
+		var err error
+		m.Requests, err = request.LoadFrom(m.dataDir)
+		if err != nil {
+			slog.Error("failed to load requests", slog.Any("error", err))
+			return fmt.Errorf("loading requests from file: %w", err)
+		}
+
+		var items []list.Item
+		for _, group := range m.Requests {
+			if group.Name == request.UnsortedName {
+				items = append(items, group.ListItems()...)
+			} else {
+				items = append(items, group)
+			}
+		}
+
+		return m.List.SetItems(items)
+	}
 }
 
 // Update updates the list and viewport.
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var commands []tea.Cmd
 	switch msg := msg.(type) {
+	case target.FocusMsg:
+		m.Focused = msg.FocusedTarget == target.RequestsTarget && msg.UnfocusedTarget != target.RequestsTarget
+		slog.Debug("updating requests focus", slog.Any("message", msg), slog.Bool("focused", m.Focused))
+		if m.Focused {
+			m.Style = styles.FocusedBorder.Width(m.Style.GetWidth()).Height(m.Style.GetHeight())
+		} else {
+			m.Style = styles.BorderPanel.Width(m.Style.GetWidth()).Height(m.Style.GetHeight())
+		}
+
+		commands = append(commands, help.UpdateKeymap(m.Keymap))
 	case tea.WindowSizeMsg:
 		h, v := styles.FocusedBorder.GetFrameSize()
-		m.List.SetSize(msg.Width-h, msg.Height-v)
+		m.List.SetSize(defaultListWidth-h, msg.Height-v)
+		// m.Style.Height(msg.Height - v)
+		m.Style.Width(defaultListWidth - h)
 	case tea.KeyMsg:
 		cmd := m.handleKey(msg)
 		commands = append(commands, cmd)
 	}
 
-	list, listCmd := m.List.Update(msg)
+	reqList, listCmd := m.List.Update(msg)
 	commands = append(commands, listCmd)
 
-	m.List = list
+	m.List = reqList
 	return m, tea.Batch(commands...)
 }
 
@@ -147,5 +172,5 @@ func (m *Model) View() string {
 	}
 
 	// render with wordwrap
-	return style.Render(wordwrap.String(m.List.View(), 50))
+	return style.Render(wordwrap.String(m.List.View(), defaultListWidth))
 }
