@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.26.4
 	github.com/charmbracelet/lipgloss v0.9.1
-	github.com/magefile/mage v1.15.0
+	github.com/magefile/mage v1.17.2
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/muesli/reflow v0.3.0
 	github.com/spf13/pflag v1.0.5
