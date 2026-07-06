@@ -9,7 +9,7 @@ require (
 	github.com/magefile/mage v1.15.0
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/muesli/reflow v0.3.0
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	sigs.k8s.io/yaml v1.4.0
