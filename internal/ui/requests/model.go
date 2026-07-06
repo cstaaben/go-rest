@@ -21,12 +21,12 @@ package requests
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/wordwrap"
-	"log/slog"
 
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
@@ -81,8 +81,13 @@ func New(dataDir string) *Model {
 	h, v := styles.FocusedBorder.GetFrameSize()
 	m := &Model{
 		dataDir: dataDir,
-		List:    list.New([]list.Item{}, list.NewDefaultDelegate(), defaultListWidth-h, defaultListHeight-v),
-		Style:   styles.BorderPanel,
+		List: list.New(
+			[]list.Item{},
+			list.NewDefaultDelegate(),
+			defaultListWidth-h,
+			defaultListHeight-v,
+		),
+		Style: styles.BorderPanel,
 	}
 
 	m.List.Title = "Requests"
@@ -98,7 +103,7 @@ func New(dataDir string) *Model {
 func (m *Model) Init() tea.Cmd {
 	return func() tea.Msg {
 		var err error
-		m.Requests, err = request.LoadFrom(m.dataDir)
+		m.Requests, err = request.LoadAll(m.dataDir)
 		if err != nil {
 			slog.Error("failed to load requests", slog.Any("error", err))
 			return fmt.Errorf("loading requests from file: %w", err)

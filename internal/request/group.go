@@ -20,19 +20,22 @@ package request
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+
+	"github.com/cstaaben/go-rest/internal/uuid"
 )
 
 const UnsortedName = "unsorted"
 
 type Group struct {
+	ID       string     `json:"id"`
 	Name     string     `json:"name"`
 	Desc     string     `json:"desc"`
 	Requests []*Request `json:"requests"`
 }
 
-func NewGroup(name string) *Group {
+func NewGroup() *Group {
 	return &Group{
-		Name:     name,
+		ID:       uuid.NewString(),
 		Requests: make([]*Request, 0),
 	}
 }
@@ -71,7 +74,9 @@ func (group *Group) AddRequest(r *Request) {
 func (group *Group) RemoveRequest(r *Request) {
 	for i, req := range group.Requests {
 		if req == r {
-			group.Requests = append(group.Requests[:i], group.Requests[i+1:]...)
+			group.Requests = append(
+				group.Requests[:i],
+				group.Requests[i+1:]...) // ISSUE: need to handle edge cases
 			break
 		}
 	}

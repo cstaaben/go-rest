@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	gap "github.com/muesli/go-app-paths"
 	flag "github.com/spf13/pflag"
@@ -44,17 +45,15 @@ var (
 type Config struct {
 	// DataDir is the directory where request and environment data is stored.
 	DataDir string `json:"data_dir,omitempty" mapstructure:"data_dir"`
-	// DefaultEnv is the name of the environment to use by default whenever a new session is started.
-	DefaultEnv string `json:"default_env,omitempty" mapstructure:"default_env"`
 	// ColorScheme sets which color scheme will be used.
 	ColorScheme string `json:"color_scheme,omitempty" mapstructure:"color_scheme"`
 	// Log is the configuration for logging.
-	Log Log `json:"log,omitempty" mapstructure:"log"`
+	Log Log `json:"log,omitzero" mapstructure:"log"`
 }
 
 // Log contains all configuration options for logging.
 type Log struct {
-	// Level is the level of logging to use.
+	// Level sets the minimum level of logs that will be printed. Supported values are:
 	Level string `json:"level,omitempty" mapstructure:"level"`
 	// Path is the full filepath of the file for logs to be written to. By default, this is a temporary file in $HOME/.config/go-rest/log.
 	Path string `json:"path,omitempty" mapstructure:"path"`
@@ -105,7 +104,7 @@ func setDefaults() error {
 	// data directory
 	dirs, err := AppScope.DataDirs()
 	if err != nil {
-		return fmt.Errorf("finding app data directories: %w", err)
+		return fmt.Errorf("data directories: %w", err)
 	}
 
 	if len(dirs) == 0 {
@@ -114,11 +113,11 @@ func setDefaults() error {
 	viper.SetDefault("data_dir", dirs[0])
 
 	// log path
-	logPath, err := AppScope.LogPath("go-rest.log")
+	logPath, err := AppScope.LogPath(fmt.Sprintf("go-rest_%d.log", time.Now().Unix()))
 	if err != nil {
 		return fmt.Errorf("log path: %w", err)
 	}
-	viper.SetDefault("log.path", logPath)
+	viper.Set("log.path", logPath)
 	// log level
 	viper.SetDefault("log.level", "info")
 	// log format

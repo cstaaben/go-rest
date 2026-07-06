@@ -1,0 +1,6 @@
+Website = "https://github.com/cstaaben/go-rest"
+
+[Details]
+Name = "go-rest"
+ID = "com.go-rest.app"
+Version = "1.0.0"

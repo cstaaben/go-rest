@@ -48,7 +48,19 @@ func Run() error {
 	}
 
 	mg.SerialDeps(Tidy, Vendor, Lint)
+
 	return sh.RunV(goCmd, "run", "./cmd/go-rest", "--config", "./example/config.yaml")
+}
+
+// Call run target, then dump log file to stdout.
+func Debug() error {
+	mg.Deps(Run)
+
+	if err := sh.RunV("cat", "./logs/test.log"); err != nil {
+		log.Println("error printing log file:", err)
+	}
+
+	return nil
 }
 
 // Run golangci-lint

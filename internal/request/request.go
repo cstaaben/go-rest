@@ -20,21 +20,30 @@ package request
 
 import (
 	"reflect"
+
+	"github.com/cstaaben/go-rest/internal/uuid"
 )
 
 type Request struct {
-	Name string `json:"name,omitempty"`
-	Desc string `json:"desc,omitempty"`
-	Data *Data  `json:"data,omitempty"`
+	ID       string `json:"id"`
+	Name     string `json:"name,omitempty"`
+	Desc     string `json:"desc,omitempty"`
+	Data     *Data  `json:"data,omitempty"`
+	Response *Data  `json:"response,omitempty"`
 }
 
 type Data struct {
-	URL      string              `json:"url,omitempty"`
-	Headers  map[string][]string `json:"headers,omitempty"`
-	Method   string              `json:"method,omitempty"`
-	Proto    string              `json:"proto,omitempty"`
-	Body     string              `json:"body,omitempty"`
-	Response *Data               `json:"response,omitempty"`
+	URL     string              `json:"url,omitempty"`
+	Headers map[string][]string `json:"headers,omitempty"`
+	Method  string              `json:"method,omitempty"`
+	Proto   string              `json:"proto,omitempty"`
+	Body    string              `json:"body,omitempty"`
+}
+
+func New() *Request {
+	return &Request{
+		ID: uuid.NewString(),
+	}
 }
 
 // FilterValue is the value we use when filtering against this item when
@@ -53,4 +62,8 @@ func (request *Request) Description() string {
 
 func (r *Request) Equal(other *Request) bool {
 	return reflect.DeepEqual(r, other)
+}
+
+func Equal(a, b *Request) bool {
+	return a.Equal(b)
 }

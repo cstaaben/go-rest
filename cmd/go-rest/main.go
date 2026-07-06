@@ -22,15 +22,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"path"
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 	flag "github.com/spf13/pflag"
-	"log/slog"
 
 	"github.com/cstaaben/go-rest/internal/config"
 	"github.com/cstaaben/go-rest/internal/model"
@@ -41,9 +42,15 @@ func init() {
 }
 
 func main() {
+	if err := run(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	flag.Parse()
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	_, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	err := config.Load()
@@ -54,18 +61,51 @@ func main() {
 
 	closeFn, err := setupLogger(config.Logging())
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, "ERROR: failed to create logger", err)
 		os.Exit(1)
 	}
 	defer closeFn()
 
-	slog.Debug("Starting client", slog.String("colorscheme", config.ColorScheme()))
+	slog.Debug("Starting client")
 
-	p := tea.NewProgram(model.New(), tea.WithAltScreen(), tea.WithContext(ctx))
-	if _, err := p.Run(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	a := app.New()
+	w := a.NewWindow("go-rest")
+
+	baseContainer, err := model.NewContainer()
+	if err != nil {
+		return err
 	}
+
+	m := fyne.NewMainMenu(
+		fyne.NewMenu(
+			"File",
+			fyne.NewMenuItem("New Group", func() {}),
+			fyne.NewMenuItem("New Request", func() {}),
+			fyne.NewMenuItemSeparator(),
+			fyne.NewMenuItem("Save", func() {}),
+			fyne.NewMenuItem("Save As...", func() {}),
+			fyne.NewMenuItem("Load", func() {}),
+		),
+		fyne.NewMenu(
+			"Edit",
+			fyne.NewMenuItem("Rename", func() {}),
+			fyne.NewMenuItem("Move", func() {}),
+			fyne.NewMenuItem("Delete", func() {}),
+		),
+		fyne.NewMenu("View"),
+		fyne.NewMenu("Requests"),
+		fyne.NewMenu("Environment"),
+	)
+	w.SetMainMenu(m)
+
+	w.SetContent(baseContainer)
+	// set size to double the minimum
+	s := w.Content().MinSize().Add(w.Content().MinSize())
+	w.Resize(s)
+
+	w.ShowAndRun()
+
+	return nil
 }
 
 func setupLogger(cfg config.Log) (func(), error) {
@@ -101,6 +141,8 @@ func setupLogger(cfg config.Log) (func(), error) {
 		handler = slog.NewJSONHandler(logFile, opts)
 	case "text":
 		handler = slog.NewTextHandler(logFile, opts)
+	default:
+		return nil, errors.New("unsupported log format")
 	}
 
 	slog.SetDefault(slog.New(handler))
@@ -122,7 +164,7 @@ func openLogFile(filepath string) (*os.File, error) {
 			return nil, fmt.Errorf("log directory: %w", err)
 		} else if err != nil && errors.Is(err, os.ErrNotExist) {
 			// create the log directory
-			err = os.Mkdir(path.Join(config.DefaultPath, "log"), 0755)
+			err = os.Mkdir(path.Join(config.DefaultPath, "log"), 0o755)
 			if err != nil {
 				return nil, fmt.Errorf("log directory: %w", err)
 			}
@@ -134,7 +176,7 @@ func openLogFile(filepath string) (*os.File, error) {
 			fmt.Sprintf("go-rest.%s.*.log", time.Now().Format("20060102")),
 		)
 	} else {
-		file, err = os.OpenFile(os.ExpandEnv(filepath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err = os.OpenFile(os.ExpandEnv(filepath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("log file: %w", err)
