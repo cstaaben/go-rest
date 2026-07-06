@@ -101,7 +101,7 @@ Issues are tracked using GitHub Issues (uses the `gh` CLI). Pull Requests are no
 
 ### Triage labels
 
-Using standard default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+Using labels: `triage:needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 

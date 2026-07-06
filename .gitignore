@@ -5,6 +5,7 @@ dist/
 logs/
 bin/
 vendor/
+examples/
 # test data under the example directory
 example/data/requests/*
 example/data/environments/*

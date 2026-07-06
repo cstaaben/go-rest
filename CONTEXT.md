@@ -84,6 +84,19 @@ _Avoid_: Response query, data filter
 A temporary, in-memory variable populated dynamically during execution (such as by an Extraction Rule) that overrides active Environment variables during the current application session.
 _Avoid_: Local variable, run variable, temp credential
 
+**Response Data**:
+The structured container (encapsulating status code, headers, body, protocol, and execution duration) representing the outcome of a Request's network execution.
+_Avoid_: HTTP response, result data
+
+**Dynamic Row List**:
+A GUI key-value editor component consisting of a vertical stack of editable fields (Key, Value, Active checkbox, Delete button) with automatic trailing row generation.
+_Avoid_: Parameter table, key-value grid
+
+**Environment Manager**:
+The modal GUI dialog used to create, rename, delete, and configure Environments and their variables.
+_Avoid_: Config window, environment tab
+
+
 
 
 
