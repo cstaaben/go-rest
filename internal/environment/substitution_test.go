@@ -89,6 +89,18 @@ func TestSubstitute(t *testing.T) {
 			input:    "https://api.example.com",
 			expected: "https://api.example.com",
 		},
+		{
+			name:     "malformed placeholder ignored",
+			env:      &environment.Environment{},
+			input:    "{{a}b}}",
+			expected: "{{a}b}}",
+		},
+		{
+			name:     "out-of-scope placeholder ignored",
+			env:      &environment.Environment{},
+			input:    "{{$randomInt}}",
+			expected: "{{$randomInt}}",
+		},
 	}
 
 	for _, tc := range tests {

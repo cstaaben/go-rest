@@ -22,6 +22,9 @@ func (s *Session) Get(key string) (any, bool) {
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	if s.Variables == nil {
+		return nil, false
+	}
 	val, ok := s.Variables[key]
 	return val, ok
 }
@@ -33,5 +36,8 @@ func (s *Session) Set(key string, val any) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.Variables == nil {
+		s.Variables = make(map[string]any)
+	}
 	s.Variables[key] = val
 }

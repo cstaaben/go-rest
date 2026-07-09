@@ -48,27 +48,24 @@ func (d *Data) Substitute(env *environment.Environment, session *variables.Sessi
 		}
 	}
 
-	subURL, missing := env.Substitute(d.URL, session)
-	addMissing(missing)
+	sub := func(input string) string {
+		subStr, missing := env.Substitute(input, session)
+		addMissing(missing)
+		return subStr
+	}
 
-	subMethod, missing := env.Substitute(d.Method, session)
-	addMissing(missing)
-
-	subBody, missing := env.Substitute(d.Body, session)
-	addMissing(missing)
+	subURL := sub(d.URL)
+	subMethod := sub(d.Method)
+	subBody := sub(d.Body)
 
 	var subHeaders map[string][]string
 	if d.Headers != nil {
 		subHeaders = make(map[string][]string)
 		for k, vals := range d.Headers {
-			subK, missing := env.Substitute(k, session)
-			addMissing(missing)
-
+			subK := sub(k)
 			var subVals []string
 			for _, val := range vals {
-				subV, missing := env.Substitute(val, session)
-				addMissing(missing)
-				subVals = append(subVals, subV)
+				subVals = append(subVals, sub(val))
 			}
 			subHeaders[subK] = subVals
 		}

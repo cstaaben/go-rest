@@ -75,3 +75,17 @@ func TestSession_Concurrency(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestSession_Uninitialized(t *testing.T) {
+	s := &variables.Session{}
+	// Verify reading from uninitialized session doesn't panic
+	val, ok := s.Get("token")
+	assert.False(t, ok)
+	assert.Nil(t, val)
+
+	// Verify writing to uninitialized session doesn't panic and initializes the map
+	s.Set("token", "12345")
+	val, ok = s.Get("token")
+	assert.True(t, ok)
+	assert.Equal(t, "12345", val)
+}

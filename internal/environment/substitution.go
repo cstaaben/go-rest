@@ -3,12 +3,11 @@ package environment
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/cstaaben/go-rest/internal/variables"
 )
 
-var placeholderRegex = regexp.MustCompile(`\{\{([^}]+)\}\}`)
+var placeholderRegex = regexp.MustCompile(`\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}`)
 
 // Substitute replaces {{variable_name}} placeholders in the input string using the environment's variables
 // and the provided session variables (which take precedence). It returns the substituted string and a slice
@@ -25,8 +24,11 @@ func (e *Environment) Substitute(input string, session *variables.Session) (stri
 	seenMissing := make(map[string]bool)
 
 	result := placeholderRegex.ReplaceAllStringFunc(input, func(match string) string {
-		key := match[2 : len(match)-2]
-		key = strings.TrimSpace(key)
+		sub := placeholderRegex.FindStringSubmatch(match)
+		if len(sub) < 2 {
+			return match
+		}
+		key := sub[1]
 
 		// Check session first
 		if session != nil {
