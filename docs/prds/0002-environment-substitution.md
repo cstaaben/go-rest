@@ -14,7 +14,6 @@ Implement an Environment variable substitution engine. Allow users to reference 
 2. As a developer, I want to select an Active Environment, so that all requests automatically resolve variable placeholders using that environment's variables.
 3. As a developer, I want request execution to fail immediately with a clear validation error if a placeholder cannot be resolved, so that I do not send malformed HTTP requests (e.g., calling `DELETE /api/items/` instead of `DELETE /api/items/123`).
 4. As a developer, I want the environment substitution to have no fallback to operating system environment variables, so that request execution is strictly reproducible across different developer machines.
-5. As a developer, I want the configuration parser to validate that the selected active environment name matches an existing environment file on startup.
 
 ## Implementation Decisions
 
