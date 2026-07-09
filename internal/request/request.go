@@ -1,6 +1,6 @@
 /*
  * go-rest - A TUI for a REST client
- * Copyright (C) 2024  Corbin Staaben
+ * Copyright (C) 2026  Corbin Staaben
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Package request defines the a request wrapper around an HTTP request.
 package request
 
 import (
@@ -24,6 +25,7 @@ import (
 	"github.com/cstaaben/go-rest/internal/uuid"
 )
 
+// Request contains all the information to create an HTTP request.
 type Request struct {
 	ID       string `json:"id"`
 	Name     string `json:"name,omitempty"`
@@ -40,30 +42,30 @@ type Data struct {
 	Body    string              `json:"body,omitempty"`
 }
 
+// New returns a new request with a new ID.
 func New() *Request {
 	return &Request{
-		ID: uuid.NewString(),
+		ID: uuid.Must(),
 	}
 }
 
 // FilterValue is the value we use when filtering against this item when
 // we're filtering the list.
-func (request *Request) FilterValue() string {
-	return request.Name
+func (r *Request) FilterValue() string {
+	return r.Name
 }
 
-func (request *Request) Title() string {
-	return request.Name
+// Title returns the request's name.
+func (r *Request) Title() string {
+	return r.Name
 }
 
-func (request *Request) Description() string {
-	return request.Desc
+// Description returns the requests description.
+func (r *Request) Description() string {
+	return r.Desc
 }
 
-func (r *Request) Equal(other *Request) bool {
+// Equals returns true if the Request `other` is deeply equal to the current request and false otherwise.
+func (r *Request) Equals(other *Request) bool {
 	return reflect.DeepEqual(r, other)
-}
-
-func Equal(a, b *Request) bool {
-	return a.Equal(b)
 }

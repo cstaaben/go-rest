@@ -1,6 +1,6 @@
 /*
  * go-rest - A TUI for a REST client
- * Copyright (C) 2024  Corbin Staaben
+ * Copyright (C) 2026  Corbin Staaben
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Package config defines how the client is configured.
+// Package config defines how the client is configured and contains global state.
 package config
 
 import (

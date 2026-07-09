@@ -1,6 +1,6 @@
 /*
 * go-rest - A TUI for a REST client
- * Copyright (C) 2024  Corbin Staaben
+ * Copyright (C) 2026  Corbin Staaben
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ type Group struct {
 
 func NewGroup() *Group {
 	return &Group{
-		ID:       uuid.NewString(),
+		ID:       uuid.Must(),
 		Requests: make([]*Request, 0),
 	}
 }
@@ -76,7 +76,8 @@ func (group *Group) RemoveRequest(r *Request) {
 		if req == r {
 			group.Requests = append(
 				group.Requests[:i],
-				group.Requests[i+1:]...) // ISSUE: need to handle edge cases
+				group.Requests[i+1:]...,
+			) // ISSUE: need to handle edge cases
 			break
 		}
 	}

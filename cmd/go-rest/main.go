@@ -1,6 +1,6 @@
 /*
  * go-rest - A TUI for a REST client
- * Copyright (C) 2024  Corbin Staaben
+ * Copyright (C) 2026  Corbin Staaben
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@ func run() error {
 		return err
 	}
 
+	// TODO: move to package
 	m := fyne.NewMainMenu(
 		fyne.NewMenu(
 			"File",
