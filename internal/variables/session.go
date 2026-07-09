@@ -5,13 +5,13 @@ import "sync"
 // Session represents a temporary, thread-safe in-memory key-value store for session variables.
 type Session struct {
 	mu        sync.RWMutex
-	Variables map[string]any
+	variables map[string]any
 }
 
 // NewSession initializes and returns a new Session.
 func NewSession() *Session {
 	return &Session{
-		Variables: make(map[string]any),
+		variables: make(map[string]any),
 	}
 }
 
@@ -22,10 +22,10 @@ func (s *Session) Get(key string) (any, bool) {
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.Variables == nil {
+	if s.variables == nil {
 		return nil, false
 	}
-	val, ok := s.Variables[key]
+	val, ok := s.variables[key]
 	return val, ok
 }
 
@@ -36,8 +36,8 @@ func (s *Session) Set(key string, val any) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.Variables == nil {
-		s.Variables = make(map[string]any)
+	if s.variables == nil {
+		s.variables = make(map[string]any)
 	}
-	s.Variables[key] = val
+	s.variables[key] = val
 }

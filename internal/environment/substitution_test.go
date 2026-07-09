@@ -101,6 +101,17 @@ func TestSubstitute(t *testing.T) {
 			input:    "{{$randomInt}}",
 			expected: "{{$randomInt}}",
 		},
+		{
+			name: "complex variable type fails",
+			env: &environment.Environment{
+				Variables: map[string]any{
+					"complex_map": map[string]string{"foo": "bar"},
+				},
+			},
+			input:        "{{complex_map}}",
+			expected:     "{{complex_map}}",
+			expectedMiss: []string{"complex_map"},
+		},
 	}
 
 	for _, tc := range tests {
