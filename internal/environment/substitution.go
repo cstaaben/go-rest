@@ -5,67 +5,47 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cstaaben/go-rest/internal/request"
+	"github.com/cstaaben/go-rest/internal/variables"
 )
 
 var placeholderRegex = regexp.MustCompile(`\{\{([^}]+)\}\}`)
 
-// Substitute replaces {{variable_name}} placeholders in URL, HTTP method, header keys, header values, and body
-// using the environment's variables. If any placeholder cannot be resolved, it returns an error listing the missing variables.
-func (e *Environment) Substitute(data *request.Data) (*request.Data, error) {
-	if data == nil {
-		return nil, nil
-	}
-
-	variables := make(map[string]any)
+// Substitute replaces {{variable_name}} placeholders in the input string using the environment's variables
+// and the provided session variables (which take precedence). It returns the substituted string and a slice
+// of unique unresolved placeholder names.
+func (e *Environment) Substitute(input string, session *variables.Session) (string, []string) {
+	variablesMap := make(map[string]any)
 	if e != nil && e.Variables != nil {
-		variables = e.Variables
+		for k, v := range e.Variables {
+			variablesMap[k] = v
+		}
 	}
 
 	var missingVars []string
 	seenMissing := make(map[string]bool)
 
-	substituteStr := func(input string) string {
-		return placeholderRegex.ReplaceAllStringFunc(input, func(match string) string {
-			key := match[2 : len(match)-2]
-			key = strings.TrimSpace(key)
-			if val, ok := variables[key]; ok {
+	result := placeholderRegex.ReplaceAllStringFunc(input, func(match string) string {
+		key := match[2 : len(match)-2]
+		key = strings.TrimSpace(key)
+
+		// Check session first
+		if session != nil {
+			if val, ok := session.Get(key); ok {
 				return fmt.Sprintf("%v", val)
 			}
+		}
+
+		// Fallback to environment variables
+		val, ok := variablesMap[key]
+		if !ok {
 			if !seenMissing[key] {
 				seenMissing[key] = true
 				missingVars = append(missingVars, key)
 			}
 			return match
-		})
-	}
-
-	subURL := substituteStr(data.URL)
-	subMethod := substituteStr(data.Method)
-	subBody := substituteStr(data.Body)
-
-	var subHeaders map[string][]string
-	if data.Headers != nil {
-		subHeaders = make(map[string][]string)
-		for k, vals := range data.Headers {
-			subK := substituteStr(k)
-			var subVals []string
-			for _, val := range vals {
-				subVals = append(subVals, substituteStr(val))
-			}
-			subHeaders[subK] = subVals
 		}
-	}
+		return fmt.Sprintf("%v", val)
+	})
 
-	if len(missingVars) > 0 {
-		return nil, fmt.Errorf("missing variables: %s", strings.Join(missingVars, ", "))
-	}
-
-	return &request.Data{
-		URL:     subURL,
-		Method:  subMethod,
-		Headers: subHeaders,
-		Proto:   data.Proto,
-		Body:    subBody,
-	}, nil
+	return result, missingVars
 }
