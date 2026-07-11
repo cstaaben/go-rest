@@ -22,9 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log/slog"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -46,19 +44,28 @@ func LoadAll(dataDir string) ([]*Group, error) {
 		return nil, errors.New("requests directory not found")
 	}
 
-	files, err := os.ReadDir(path.Join(dataDir, requestDir))
-	if err != nil {
-		return nil, fmt.Errorf("reading requests directory: %w", err)
-	}
-
+	requestsPath := filepath.Join(dataDir, requestDir)
 	groups := make([]*Group, 0)
-	for _, file := range files {
-		group, err := loadRequests(path.Join(dataDir, requestDir, file.Name()))
-		if err != nil {
-			return nil, fmt.Errorf("loading request: %w", err)
-		}
 
+	err = filepath.WalkDir(requestsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if filepath.Ext(d.Name()) != ".yaml" {
+			return nil
+		}
+		group, err := loadRequests(path)
+		if err != nil {
+			return fmt.Errorf("loading request: %w", err)
+		}
 		groups = append(groups, group)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return groups, nil
@@ -112,26 +119,17 @@ func LoadGroupIDsFromDir(dataDir string) ([]string, error) {
 	err := filepath.WalkDir(
 		d,
 		func(path string, entry fs.DirEntry, err error) error {
-			slog.Info(
-				"checking file",
-				slog.String("path", path),
-				slog.String("name", entry.Name()),
-			)
-
 			if err != nil {
-				slog.Info("error found", slog.String("error", err.Error()))
 				return err
-			} else if path == d {
-				slog.Info("skipping path matching data dir", slog.String("path", path), slog.String("data_dir", d))
+			}
+			if entry.IsDir() {
 				return nil
-			} else if entry.IsDir() {
-				slog.Info("skipping directory", slog.String("path", path))
-				return filepath.SkipDir
+			}
+			if filepath.Ext(entry.Name()) != ".yaml" {
+				return nil
 			}
 
 			id := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-			slog.Info("adding id to list", slog.String("id", id))
-
 			uids = append(uids, id)
 
 			return nil
@@ -155,19 +153,20 @@ func groupFilePath(id string, dataDir string) (string, error) {
 		return "", errors.New("requests directory not found")
 	}
 
+	requestsPath := filepath.Join(dataDir, requestsDir)
 	var targetFile string
-	err = filepath.WalkDir(requestsDir, func(path string, d fs.DirEntry, err error) error {
-		// skip root entry and any directories
-		if path == requestsDir || d.IsDir() {
+
+	err = filepath.WalkDir(requestsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
 			return nil
 		}
-
-		curPath := filepath.Join(path, d.Name())
-		if curPath == filepath.Join(path, fmt.Sprintf("%s.yaml", id)) {
-			targetFile = curPath
+		if d.Name() == fmt.Sprintf("%s.yaml", id) {
+			targetFile = path
 			return filepath.SkipAll
 		}
-
 		return nil
 	})
 

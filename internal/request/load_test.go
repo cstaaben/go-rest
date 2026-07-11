@@ -18,13 +18,11 @@ func TestLoadGroupIDsFromDir(t *testing.T) {
 
 	t.Logf("Loaded group IDs: %#v", ids)
 
-	if len(ids) != 2 {
-		t.Fatalf("expected 2 requests, but received %d", len(ids))
+	if len(ids) != 1 {
+		t.Fatalf("expected 1 group, but received %d", len(ids))
 	}
 
-	if !slices.Contains(ids, "33336ae0-0545-43a7-a6be-1dce501170c4") {
-		t.Fatalf("missing id for example request 1 in loaded IDs")
-	} else if !slices.Contains(ids, "f6b11dd8-db26-41b9-a93a-be19afc29e0f") {
-		t.Fatalf("missing id for example request 2 in loaded IDs")
+	if !slices.Contains(ids, "3901089e-b8a5-47c2-8504-064e4a6c3413") {
+		t.Fatalf("missing id for example group in loaded IDs")
 	}
 }

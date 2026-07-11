@@ -2,19 +2,19 @@
 
 ## Problem Statement
 
-I want to customize the look and feel of my REST client (TUI and GUI) to match my visual preferences and system aesthetics. Hardcoded light/dark colors can cause poor readability, strain my eyes, or clash with my operating system theme.
+I want to customize the look and feel of my REST client to match my visual preferences and system aesthetics. Hardcoded light/dark colors can cause poor readability, strain my eyes, or clash with my operating system theme.
 
 ## Solution
 
-Enable custom Color Scheme loading from the main `go-rest.yaml` configuration file. A scheme defines an abstract logical palette (e.g. background, foreground, primary, highlight, success, error) as HEX values. The application will map these abstract colors to the appropriate rendering properties (Lipgloss styling for TUI, and `fyne.Theme` values for GUI). Support pairing light/dark themes to allow dynamic, automatic switching based on system preferences.
+Enable custom Color Scheme loading from the main `go-rest.yaml` configuration file. A scheme defines an abstract logical palette (e.g. background, foreground, primary, highlight, success, error) as HEX values. The application will map these abstract colors to the appropriate GUI rendering properties (`fyne.Theme` values). Support pairing light/dark themes to allow dynamic, automatic switching based on system preferences.
 
 ## User Stories
 
 1. As a user, I want to define my custom color schemes inline under the `color_schemes` section in the main `go-rest.yaml` file, so that I can manage my styles in a single configuration file.
-2. As a user, I want to define a theme using a simple abstract palette of logical colors (background, foreground, primary, highlight, success, warning, error), so that I don't have to write separate design configurations for the terminal and the desktop GUI.
+2. As a user, I want to define a theme using a simple abstract palette of logical colors (background, foreground, primary, highlight, success, warning, error), so that I can easily customize the desktop GUI.
 3. As a user, I want to select a single active `color_scheme` to force the application to use that theme statically.
 4. As a user, I want to specify a `light_scheme` and a `dark_scheme` in my configuration, so that `go-rest` dynamically selects the corresponding theme based on whether my operating system is in Light or Dark mode.
-5. As a developer, I want the theme engine to automatically map abstract colors to the correct framework variables (e.g., mapping `highlight` to Fyne's focus color or Lipgloss's border color).
+5. As a developer, I want the theme engine to automatically map abstract colors to the correct framework variables (e.g., mapping `highlight` to Fyne's focus color).
 
 ## Implementation Decisions
 
@@ -32,8 +32,7 @@ Enable custom Color Scheme loading from the main `go-rest.yaml` configuration fi
   * On launch and on system theme change notifications, the app checks if `light_scheme` and `dark_scheme` are configured.
   * If yes, it queries the host system theme and resolves to the matching scheme. If no system theme can be determined, or if `color_scheme` is set explicitly, it falls back to the static `color_scheme`.
 * **Framework Integration:**
-  * TUI: Convert Resolved active colors to `lipgloss.AdaptiveColor`.
-  * GUI: Implement `fyne.Theme` interface in Go, wrapping the active scheme and returning color values dynamically based on palette lookups.
+  * Implement `fyne.Theme` interface in Go, wrapping the active scheme and returning color values dynamically based on palette lookups.
 
 ## Testing Decisions
 

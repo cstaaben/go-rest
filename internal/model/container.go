@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Package model defines the current state of the GUI.
 package model
 
 import (
@@ -27,8 +28,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"github.com/cstaaben/go-rest/internal/ui/requests"
 )
 
 func NewContainer() (*fyne.Container, error) {
@@ -53,11 +52,13 @@ func NewContainer() (*fyne.Container, error) {
 	)
 	respTabs.SetTabLocation(container.TabLocationTop)
 
+	// TODO: replace these - deleted with bubbletea models
 	reqTree := widget.NewTree(
-		requests.GroupRequests,
-		requests.IsGroup,
-		requests.NewTreeItem,
-		requests.UpdateTreeItem,
+		// requests.GroupRequests,
+		// requests.IsGroup,
+		// requests.NewTreeItem,
+		// requests.UpdateTreeItem,
+		nil, nil, nil, nil,
 	)
 
 	// TODO: move into model/requests

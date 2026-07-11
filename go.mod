@@ -5,15 +5,18 @@ go 1.26
 require (
 	fyne.io/fyne/v2 v2.7.0
 	github.com/charmbracelet/bubbles v0.18.0
-	github.com/charmbracelet/bubbletea v0.26.4
-	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/magefile/mage v1.15.0
 	github.com/muesli/go-app-paths v0.2.2
-	github.com/muesli/reflow v0.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.11.1
 	sigs.k8s.io/yaml v1.4.0
+)
+
+require (
+	github.com/charmbracelet/bubbletea v0.26.4 // indirect
+	github.com/charmbracelet/lipgloss v0.9.1 // indirect
+	github.com/muesli/reflow v0.3.0 // indirect
 )
 
 require (
