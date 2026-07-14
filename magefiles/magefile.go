@@ -42,7 +42,7 @@ func Build() error {
 func Run() error {
 	_, err := os.Stat("./logs")
 	if os.IsNotExist(err) {
-		if err = os.Mkdir("./logs", 0755); err != nil {
+		if err = os.Mkdir("./logs", 0o755); err != nil {
 			return fmt.Errorf("creating logs dir: %w", err)
 		}
 	}
@@ -56,7 +56,7 @@ func Run() error {
 func Debug() error {
 	mg.Deps(Run)
 
-	if err := sh.RunV("cat", "./logs/test.log"); err != nil {
+	if err := sh.RunV("cat", os.ExpandEnv("$HOME/.local/share/go-rest/go-rest.log")); err != nil {
 		log.Println("error printing log file:", err)
 	}
 

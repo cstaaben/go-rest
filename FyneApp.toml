@@ -2,5 +2,6 @@ Website = "https://github.com/cstaaben/go-rest"
 
 [Details]
 Name = "go-rest"
-ID = "com.go-rest.app"
+ID = "com.cstaaben.go-rest"
 Version = "1.0.0"
+Icon = "./assets/gopher-sleeping.png"

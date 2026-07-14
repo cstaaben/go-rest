@@ -19,12 +19,13 @@
 package request
 
 import (
-	"github.com/charmbracelet/bubbles/list"
+	"log/slog"
+	"slices"
 
 	"github.com/cstaaben/go-rest/internal/uuid"
 )
 
-const UnsortedName = "unsorted"
+const UnsortedGroup = "unsorted"
 
 type Group struct {
 	ID       string     `json:"id"`
@@ -56,29 +57,24 @@ func (group *Group) Description() string {
 	return group.Desc
 }
 
-// ListItems returns the collection of requests as list.Item.
-func (group *Group) ListItems() []list.Item {
-	var items []list.Item
-
-	for _, r := range group.Requests {
-		items = append(items, r)
-	}
-
-	return items
-}
-
 func (group *Group) AddRequest(r *Request) {
 	group.Requests = append(group.Requests, r)
 }
 
 func (group *Group) RemoveRequest(r *Request) {
+	idx := -1
 	for i, req := range group.Requests {
-		if req == r {
-			group.Requests = append(
-				group.Requests[:i],
-				group.Requests[i+1:]...,
-			) // ISSUE: need to handle edge cases
-			break
+		if !req.Equals(r) {
+			continue
 		}
+
+		idx = i
+		break
 	}
+	if idx == -1 {
+		slog.Error("Failed to find request for deletion", slog.String("name", group.Name))
+		return
+	}
+
+	group.Requests = slices.Delete(group.Requests, idx, idx+1)
 }

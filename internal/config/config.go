@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
 
 	gap "github.com/muesli/go-app-paths"
 	flag "github.com/spf13/pflag"
@@ -113,7 +112,7 @@ func setDefaults() error {
 	viper.SetDefault("data_dir", dirs[0])
 
 	// log path
-	logPath, err := AppScope.LogPath(fmt.Sprintf("go-rest_%d.log", time.Now().Unix()))
+	logPath, err := AppScope.LogPath("go-rest.log")
 	if err != nil {
 		return fmt.Errorf("log path: %w", err)
 	}

@@ -26,19 +26,19 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
 	flag "github.com/spf13/pflag"
 
 	"github.com/cstaaben/go-rest/internal/config"
-	"github.com/cstaaben/go-rest/internal/model"
+	"github.com/cstaaben/go-rest/internal/ui"
 )
 
 func init() {
 	flag.StringP("config", "c", config.DefaultPath, "Path to the configuration file")
+	flag.BoolP("debug", "d", false, "Enable debug log options")
 }
 
 func main() {
@@ -55,56 +55,26 @@ func run() error {
 
 	err := config.Load()
 	if err != nil {
-		fmt.Println("config:", err)
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, "ERROR: failed to load config:", err)
+		return err
 	}
 
 	closeFn, err := setupLogger(config.Logging())
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR: failed to create logger", err)
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, "ERROR: failed to create logger:", err)
+		return err
 	}
 	defer closeFn()
 
 	slog.Debug("Starting client")
 
-	a := app.New()
-	w := a.NewWindow("go-rest")
+	// container, err := model.New()
+	// if err != nil {
+	// 	return err
+	// }
 
-	baseContainer, err := model.NewContainer()
-	if err != nil {
-		return err
-	}
-
-	// TODO: move to package
-	m := fyne.NewMainMenu(
-		fyne.NewMenu(
-			"File",
-			fyne.NewMenuItem("New Group", func() {}),
-			fyne.NewMenuItem("New Request", func() {}),
-			fyne.NewMenuItemSeparator(),
-			fyne.NewMenuItem("Save", func() {}),
-			fyne.NewMenuItem("Save As...", func() {}),
-			fyne.NewMenuItem("Load", func() {}),
-		),
-		fyne.NewMenu(
-			"Edit",
-			fyne.NewMenuItem("Rename", func() {}),
-			fyne.NewMenuItem("Move", func() {}),
-			fyne.NewMenuItem("Delete", func() {}),
-		),
-		fyne.NewMenu("View"),
-		fyne.NewMenu("Requests"),
-		fyne.NewMenu("Environment"),
-	)
-	w.SetMainMenu(m)
-
-	w.SetContent(baseContainer)
-	// set size to double the minimum
-	s := w.Content().MinSize().Add(w.Content().MinSize())
-	w.Resize(s)
-
-	w.ShowAndRun()
+	// start the app
+	ui.NewWindow().ShowAndRun()
 
 	return nil
 }
@@ -128,7 +98,8 @@ func setupLogger(cfg config.Log) (func(), error) {
 	lvl := new(slog.LevelVar)
 	err = lvl.UnmarshalText([]byte(cfg.Level))
 	if err != nil {
-		return closeFn, fmt.Errorf("log level: %w", err)
+		fmt.Fprintf(os.Stderr, "ERROR: unrecognized log level (%s); defaulting to warn\n", cfg.Level)
+		lvl.Set(slog.LevelWarn)
 	}
 
 	opts := &slog.HandlerOptions{
@@ -151,23 +122,23 @@ func setupLogger(cfg config.Log) (func(), error) {
 	return closeFn, nil
 }
 
-func openLogFile(filepath string) (*os.File, error) {
+func openLogFile(logPath string) (*os.File, error) {
 	var (
 		file *os.File
 		err  error
 	)
 
 	// use the default log directory
-	if filepath == "" {
+	if logPath == "" {
 		// check if the log directory exists
 		_, err = os.Stat(path.Join(config.DefaultPath, "log"))
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("log directory: %w", err)
+			return nil, fmt.Errorf("directory check: %w", err)
 		} else if err != nil && errors.Is(err, os.ErrNotExist) {
 			// create the log directory
 			err = os.Mkdir(path.Join(config.DefaultPath, "log"), 0o755)
 			if err != nil {
-				return nil, fmt.Errorf("log directory: %w", err)
+				return nil, fmt.Errorf("create default log directory: %w", err)
 			}
 		}
 
@@ -177,10 +148,14 @@ func openLogFile(filepath string) (*os.File, error) {
 			fmt.Sprintf("go-rest.%s.*.log", time.Now().Format("20060102")),
 		)
 	} else {
-		file, err = os.OpenFile(os.ExpandEnv(filepath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
+		if err = os.MkdirAll(filepath.Dir(logPath), os.ModePerm); err != nil {
+			return nil, fmt.Errorf("create log directory: %w", err)
+		}
+
+		file, err = os.OpenFile(os.ExpandEnv(logPath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("log file: %w", err)
+		return nil, fmt.Errorf("creating file: %w", err)
 	}
 
 	return file, nil
