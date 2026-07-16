@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"path"
@@ -30,7 +31,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	flag "github.com/spf13/pflag"
-	"log/slog"
 
 	"github.com/cstaaben/go-rest/internal/config"
 	"github.com/cstaaben/go-rest/internal/model"
@@ -122,7 +122,7 @@ func openLogFile(filepath string) (*os.File, error) {
 			return nil, fmt.Errorf("log directory: %w", err)
 		} else if err != nil && errors.Is(err, os.ErrNotExist) {
 			// create the log directory
-			err = os.Mkdir(path.Join(config.DefaultPath, "log"), 0755)
+			err = os.Mkdir(path.Join(config.DefaultPath, "log"), 0o755)
 			if err != nil {
 				return nil, fmt.Errorf("log directory: %w", err)
 			}
@@ -134,7 +134,7 @@ func openLogFile(filepath string) (*os.File, error) {
 			fmt.Sprintf("go-rest.%s.*.log", time.Now().Format("20060102")),
 		)
 	} else {
-		file, err = os.OpenFile(os.ExpandEnv(filepath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err = os.OpenFile(os.ExpandEnv(filepath), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("log file: %w", err)
