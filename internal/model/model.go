@@ -21,13 +21,14 @@ package model
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"log/slog"
 
 	"github.com/cstaaben/go-rest/internal/config"
+	"github.com/cstaaben/go-rest/internal/db"
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
 	"github.com/cstaaben/go-rest/internal/ui/editor"
@@ -41,7 +42,7 @@ import (
 
 var _ tea.Model = (*Model)(nil)
 
-func New() *Model {
+func New(db *db.DB) *Model {
 	m := &Model{
 		Keys:         keymap.Default,
 		Help:         help.New(help.WithKeyMap(keymap.Default)),

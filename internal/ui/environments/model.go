@@ -1,8 +1,8 @@
+// Package environments defines execution environments.
 package environments
 
 import (
 	"fmt"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -10,8 +10,7 @@ import (
 )
 
 type Model struct {
-	defaultEnv string
-	dataDir    string
+	dataDir string
 
 	Environments []*environment.Environment
 	Selected     *environment.Environment
@@ -40,15 +39,6 @@ func (model *Model) Init() tea.Cmd {
 		}
 
 		model.Environments = envs
-
-		if model.defaultEnv != "" {
-			for _, env := range model.Environments {
-				if strings.EqualFold(env.Name, model.defaultEnv) {
-					model.Selected = env
-					break
-				}
-			}
-		}
 
 		return nil
 	}

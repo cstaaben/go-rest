@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https: //www.gnu.org/licenses/>.
  */
 
+// Package environment defines an object for storing execution environment data.
 package environment
 
 import (

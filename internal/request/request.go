@@ -23,9 +23,11 @@ import (
 )
 
 type Request struct {
-	Name string `json:"name,omitempty"`
-	Desc string `json:"desc,omitempty"`
-	Data *Data  `json:"data,omitempty"`
+	UUID      string `json:"uuid"`
+	Name      string `json:"name,omitempty"`
+	Desc      string `json:"desc,omitempty"`
+	GroupUUID string `json:"group_uuid,omitempty"`
+	Data      *Data  `json:"data,omitempty"`
 }
 
 type Data struct {

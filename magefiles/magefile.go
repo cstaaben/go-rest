@@ -42,7 +42,7 @@ func Build() error {
 func Run() error {
 	_, err := os.Stat("./logs")
 	if os.IsNotExist(err) {
-		if err = os.Mkdir("./logs", 0755); err != nil {
+		if err = os.Mkdir("./logs", 0o755); err != nil {
 			return fmt.Errorf("creating logs dir: %w", err)
 		}
 	}
@@ -70,4 +70,8 @@ func Vendor() error {
 // Kill any running binary with the filename from the build target.
 func Kill() error {
 	return sh.RunV("pkill", "--signal", "9", "--echo", "go-rest")
+}
+
+func CreateMigration(name string) error {
+	return sh.RunV("goose", "-env=production", "-path=internal/db", "create", name)
 }

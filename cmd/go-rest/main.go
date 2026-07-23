@@ -33,39 +33,59 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/cstaaben/go-rest/internal/config"
+	"github.com/cstaaben/go-rest/internal/db"
 	"github.com/cstaaben/go-rest/internal/model"
 )
 
 func init() {
 	flag.StringP("config", "c", config.DefaultPath, "Path to the configuration file")
+	flag.BoolP("dev", "d", false, "Enable development mode")
+
+	if err := flag.CommandLine.MarkHidden("dev"); err != nil {
+		fmt.Fprintf(os.Stderr, "WARNING: Failed to hide development flag: %v", err)
+	}
 }
 
 func main() {
-	flag.Parse()
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	err := config.Load()
-	if err != nil {
-		fmt.Println("config:", err)
+	if err := run(ctx); err != nil {
 		os.Exit(1)
 	}
+}
 
-	closeFn, err := setupLogger(config.Logging())
+func run(ctx context.Context) error {
+	flag.Parse()
+
+	err := config.Load()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "ERROR: failed to load config: %v", err)
+		return err
+	}
+
+	closeFn, err := setupLogger(config.LoggingConfig())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: failed to setup logger: %v", err)
 		os.Exit(1)
 	}
 	defer closeFn()
 
 	slog.Debug("Starting client", slog.String("colorscheme", config.ColorScheme()))
 
+	dbx, err := db.New(ctx)
+	if err != nil {
+		return err
+	}
+	defer dbx.Close()
+
 	p := tea.NewProgram(model.New(), tea.WithAltScreen(), tea.WithContext(ctx))
 	if _, err := p.Run(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		slog.Error("Unexpected error running program", slog.String("error", err.Error()))
+		return err
 	}
+
+	return nil
 }
 
 func setupLogger(cfg config.Log) (func(), error) {
@@ -130,7 +150,7 @@ func openLogFile(filepath string) (*os.File, error) {
 
 		// create the log file
 		file, err = os.CreateTemp(
-			os.ExpandEnv(config.Logging().Path),
+			os.ExpandEnv(config.LoggingConfig().Path),
 			fmt.Sprintf("go-rest.%s.*.log", time.Now().Format("20060102")),
 		)
 	} else {
