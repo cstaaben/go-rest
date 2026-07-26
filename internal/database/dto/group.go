@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https: //www.gnu.org/licenses/>.
 */
 
-package request
+package dto
 
 import (
 	"github.com/charmbracelet/bubbles/list"
@@ -25,9 +25,10 @@ import (
 const UnsortedName = "unsorted"
 
 type Group struct {
-	Name     string     `json:"name"`
-	Desc     string     `json:"desc"`
-	Requests []*Request `json:"requests"`
+	UUID     string     `json:"uuid,omitempty" db:"uuid"`
+	Name     string     `json:"name,omitempty" db:"name"`
+	Desc     string     `json:"desc,omitempty" db:"desc"`
+	Requests []*Request `json:"requests,omitempty" db:"requests"`
 }
 
 func NewGroup(name string) *Group {

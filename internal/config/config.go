@@ -42,6 +42,7 @@ var (
 
 // Config is the configuration for the client.
 type Config struct {
+	DebugEnabled bool `json:"debug_enabled" mapstructure:"debug_enabled"`
 	// DataDir is the directory where request and environment data is stored.
 	DataDir string `json:"data_dir,omitempty" mapstructure:"data_dir"`
 	// ColorScheme sets which color scheme will be used.
@@ -135,4 +136,8 @@ func DataDir() string {
 
 func ColorScheme() string {
 	return config.ColorScheme
+}
+
+func DebugEnabled() bool {
+	return config.DebugEnabled
 }

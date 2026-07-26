@@ -22,8 +22,15 @@ ENVIRONMENT ?= production
 # DATA_DIR is the path to the directory containing the database files used by go-rest.
 DATA_DIR ?= $(HOME)/.local/share/go-rest
 
+DB_NAME =
+ifeq ($(ENVIRONMENT), production)
+	DB_NAME = data
+else
+	DB_NAME = development
+endif
+
 # GOOSE_CMD is the standard goose command prefix to use for migrations.
-GOOSE_CMD = goose sqlite3 $(DATA_DIR)/$(ENVIRONMENT).db
+GOOSE_CMD = goose sqlite3 $(DATA_DIR)/$(DB_NAME).db -dir ./internal/database/migrations
 
 # Install the binary if no targets are given
 all: install
@@ -85,5 +92,16 @@ migration-status:
 # Run the binary and dump log file to stdout.
 .PHONY: run
 run: tidy build
-	bin/go-test --config ./example/config.yaml && cat ./logs/test.log
+	bin/go-rest --config ./example/config.yaml && cat ./logs/test.log
 
+# Support passing remaining arguments to db-query
+ifeq ($(firstword $(MAKECMDGOALS)),db-query)
+  DB_QUERY_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  %:
+	@:
+endif
+
+# Interact with the SQLite DB.
+.PHONY: db-query
+db-query:
+	@sqlite3 $(DATA_DIR)/$(DB_NAME).db $(if $(DB_QUERY_ARGS)$(QUERY),"$(or $(DB_QUERY_ARGS),$(QUERY))")

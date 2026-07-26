@@ -16,15 +16,18 @@
  * along with this program.  If not, see <https: //www.gnu.org/licenses/>.
  */
 
+// Package response defines the response area UI.
 package response
 
 import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/cstaaben/go-rest/internal/database"
 )
 
 type Model struct {
+	DB *database.DAO
 	// ui
 	Spinner  spinner.Model
 	Viewport viewport.Model
@@ -34,8 +37,9 @@ type Model struct {
 	Error    error
 }
 
-func New() *Model {
+func New(db *database.DAO) *Model {
 	return &Model{
+		DB:       db,
 		Spinner:  spinner.New(spinner.WithSpinner(spinner.Meter)),
 		Viewport: viewport.New(400, 200),
 	}

@@ -33,8 +33,9 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/cstaaben/go-rest/internal/config"
-	"github.com/cstaaben/go-rest/internal/db"
+	"github.com/cstaaben/go-rest/internal/database"
 	"github.com/cstaaben/go-rest/internal/model"
+	"github.com/cstaaben/go-rest/internal/slogutils"
 )
 
 func init() {
@@ -73,15 +74,15 @@ func run(ctx context.Context) error {
 
 	slog.Debug("Starting client", slog.String("colorscheme", config.ColorScheme()))
 
-	dbx, err := db.New(ctx)
+	dbx, err := database.New(ctx)
 	if err != nil {
 		return err
 	}
 	defer dbx.Close()
 
-	p := tea.NewProgram(model.New(), tea.WithAltScreen(), tea.WithContext(ctx))
+	p := tea.NewProgram(model.New(dbx), tea.WithAltScreen(), tea.WithContext(ctx))
 	if _, err := p.Run(); err != nil {
-		slog.Error("Unexpected error running program", slog.String("error", err.Error()))
+		slog.Error("Unexpected error running program", slogutils.Err(err))
 		return err
 	}
 

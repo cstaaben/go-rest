@@ -44,6 +44,10 @@ var (
 			key.WithKeys(tea.KeyShiftTab.String()),
 			key.WithHelp(tea.KeyShiftTab.String(), "Previous Pane"),
 		),
+		SwitchViews: key.NewBinding(
+			key.WithKeys(tea.KeyCtrlE.String()),
+			key.WithHelp(tea.KeyCtrlE.String(), "Switch Views"),
+		),
 	}
 )
 
@@ -55,6 +59,7 @@ type KeyMap struct {
 	// Help         key.Binding
 	NextPane     key.Binding
 	PreviousPane key.Binding
+	SwitchViews  key.Binding
 }
 
 // ShortHelp returns a slice of bindings to be displayed in the short
@@ -70,6 +75,6 @@ func (k *KeyMap) ShortHelp() []key.Binding {
 func (k *KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.NextPane, k.PreviousPane, k.Send},
-		{k.Quit},
+		{k.SwitchViews, k.Quit},
 	}
 }
