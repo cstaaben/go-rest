@@ -1,3 +1,4 @@
+// Package editor defines the UI for the editor pane.
 package editor
 
 import (
@@ -9,8 +10,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/cstaaben/go-rest/internal/database"
+	"github.com/cstaaben/go-rest/internal/database/dto"
 	"github.com/cstaaben/go-rest/internal/model/target"
-	"github.com/cstaaben/go-rest/internal/request"
 	"github.com/cstaaben/go-rest/internal/ui/styles"
 )
 
@@ -23,17 +25,18 @@ const (
 )
 
 type Model struct {
+	DB *database.DAO
 	// ui
 	URLInput  textinput.Model
 	BodyInput textarea.Model
 	Focused   bool
 	Style     lipgloss.Style
 	// data
-	CurrentRequest *request.Request
+	CurrentRequest *dto.Request
 	FocusedField   int
 }
 
-func New() *Model {
+func New(db *database.DAO) *Model {
 	urlInput := textinput.New()
 	urlInput.Placeholder = "URL"
 	urlInput.PlaceholderStyle = styles.Title
@@ -54,6 +57,7 @@ func New() *Model {
 	}
 
 	return &Model{
+		DB:           db,
 		URLInput:     textinput.New(),
 		BodyInput:    textarea.New(),
 		FocusedField: urlField,

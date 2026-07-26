@@ -21,13 +21,15 @@ package requests
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/wordwrap"
-	"log/slog"
 
+	"github.com/cstaaben/go-rest/internal/database"
+	"github.com/cstaaben/go-rest/internal/database/dto"
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
 	"github.com/cstaaben/go-rest/internal/request"
@@ -66,9 +68,9 @@ const (
 // Model is the collection of requests loaded by the user and TUI components to display them.
 type Model struct {
 	// data
-	dataDir  string
-	Selected *request.Request
-	Requests []*request.Group
+	db       *database.DAO
+	Selected *dto.Request
+	Requests []*dto.Group
 	// ui
 	List    list.Model
 	Focused bool
@@ -77,12 +79,12 @@ type Model struct {
 }
 
 // New creates a new Model and applies the provided options.
-func New(dataDir string) *Model {
+func New(db *database.DAO) *Model {
 	h, v := styles.FocusedBorder.GetFrameSize()
 	m := &Model{
-		dataDir: dataDir,
-		List:    list.New([]list.Item{}, list.NewDefaultDelegate(), defaultListWidth-h, defaultListHeight-v),
-		Style:   styles.BorderPanel,
+		db:    db,
+		List:  list.New([]list.Item{}, list.NewDefaultDelegate(), defaultListWidth-h, defaultListHeight-v),
+		Style: styles.BorderPanel,
 	}
 
 	m.List.Title = "Requests"
@@ -98,7 +100,7 @@ func New(dataDir string) *Model {
 func (m *Model) Init() tea.Cmd {
 	return func() tea.Msg {
 		var err error
-		m.Requests, err = request.LoadFrom(m.dataDir)
+		m.Requests, err = request.LoadFrom(m.db)
 		if err != nil {
 			slog.Error("failed to load requests", slog.Any("error", err))
 			return fmt.Errorf("loading requests from file: %w", err)
@@ -106,7 +108,7 @@ func (m *Model) Init() tea.Cmd {
 
 		var items []list.Item
 		for _, group := range m.Requests {
-			if group.Name == request.UnsortedName {
+			if group.Name == dto.UnsortedName {
 				items = append(items, group.ListItems()...)
 			} else {
 				items = append(items, group)

@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package request
+// Package dto defines the data types used by go-rest.
+package dto
 
 import (
+	"database/sql"
 	"reflect"
 )
 
@@ -39,20 +41,38 @@ type Data struct {
 	Response *Data               `json:"response,omitempty"`
 }
 
-// FilterValue is the value we use when filtering against this item when
-// we're filtering the list.
-func (request *Request) FilterValue() string {
-	return request.Name
+// FilterValue is the value used when filtering against this item when
+// filtering the list.
+func (r *Request) FilterValue() string {
+	return r.Name
 }
 
-func (request *Request) Title() string {
-	return request.Name
+func (r *Request) Title() string {
+	return r.Name
 }
 
-func (request *Request) Description() string {
-	return request.Desc
+func (r *Request) Description() string {
+	return r.Desc
 }
 
 func (r *Request) Equal(other *Request) bool {
 	return reflect.DeepEqual(r, other)
+}
+
+type RequestListData struct {
+	RequestID     string         `db:"request_id"`
+	RequestName   string         `db:"request_name"`
+	RequestDesc   sql.NullString `db:"request_desc"`
+	RequestMethod string         `db:"request_method"`
+	GroupID       string         `db:"group_id"`
+	GroupName     string         `db:"group_name"`
+	GroupDesc     sql.NullString `db:"group_desc"`
+}
+
+func (r *RequestListData) RequestDescription() string {
+	return r.RequestDesc.String
+}
+
+func (r *RequestListData) GroupDescription() string {
+	return r.GroupDesc.String
 }

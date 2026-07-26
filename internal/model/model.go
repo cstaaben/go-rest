@@ -27,35 +27,36 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/cstaaben/go-rest/internal/config"
-	"github.com/cstaaben/go-rest/internal/db"
+	"github.com/cstaaben/go-rest/internal/database"
 	"github.com/cstaaben/go-rest/internal/model/keymap"
 	"github.com/cstaaben/go-rest/internal/model/target"
 	"github.com/cstaaben/go-rest/internal/ui/editor"
 	"github.com/cstaaben/go-rest/internal/ui/enveditor"
 	"github.com/cstaaben/go-rest/internal/ui/environments"
 	"github.com/cstaaben/go-rest/internal/ui/help"
-	"github.com/cstaaben/go-rest/internal/ui/notification"
+	"github.com/cstaaben/go-rest/internal/ui/notify"
 	"github.com/cstaaben/go-rest/internal/ui/requests"
 	"github.com/cstaaben/go-rest/internal/ui/response"
 )
 
 var _ tea.Model = (*Model)(nil)
 
-func New(db *db.DB) *Model {
+func New(db *database.DAO) *Model {
 	m := &Model{
+		DB:           db,
 		Keys:         keymap.Default,
 		Help:         help.New(help.WithKeyMap(keymap.Default)),
-		Environments: environments.New(config.DataDir()),
-		Requests:     requests.New(config.DataDir()),
-		Editor:       editor.New(),
-		Response:     response.New(),
+		Environments: environments.New(db),
+		Requests:     requests.New(db),
+		Editor:       editor.New(db),
+		Response:     response.New(db),
 	}
 
 	return m
 }
 
 type Model struct {
+	DB            *database.DAO // TODO: determine if needed
 	CurrentTarget target.Target
 	CurrentView   target.View
 	Keys          *keymap.KeyMap
@@ -93,8 +94,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		commands = append(commands, m.updateAllComponents(msg)...)
 	case tea.KeyMsg:
 		commands = append(commands, m.handleKey(msg))
-	case notification.Notification:
-		panic("TODO: handle notification") // TODO: display notification popup
+	case notify.Msg:
+		panic("notifications not handled") // TODO: display notification popup
 	case error:
 		panic("need to handle error: " + msg.Error())
 	}
@@ -202,6 +203,14 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		m.CurrentTarget = target.PrevTarget(m.CurrentView, m.CurrentTarget)
 		slog.Debug("previous pane", slog.Any("updated_target", m.CurrentTarget))
 		return target.ChangeFocus(m.CurrentView, m.CurrentTarget, m.CurrentView, prevTarget)
+	case key.Matches(msg, m.Keys.SwitchViews):
+		prevView := m.CurrentView
+		prevTarget := m.CurrentTarget
+		slog.Debug("switching views", slog.String("current", m.CurrentView.String()), slog.String("previous", prevView.String()))
+		m.CurrentView = target.NextView(m.CurrentView)
+		m.CurrentTarget = target.EnvironmentsTarget
+
+		return target.ChangeFocus(m.CurrentView, target.EnvironmentsTarget, prevView, prevTarget)
 	}
 
 	// TODO: handle key presses for subcomponents
