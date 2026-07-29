@@ -16,20 +16,24 @@
  * along with this program.  If not, see <https: //www.gnu.org/licenses/>.
 */
 
-package request
+package dto
 
 import (
-	"github.com/charmbracelet/bubbles/list"
+	"charm.land/bubbles/v2/list"
 )
 
+// UnsortedName is the identifier reserved for requests that do not belong to a custom group.
 const UnsortedName = "unsorted"
 
+// Group represents a logical grouping of related HTTP requests.
 type Group struct {
-	Name     string     `json:"name"`
-	Desc     string     `json:"desc"`
-	Requests []*Request `json:"requests"`
+	UUID     string     `json:"uuid,omitempty" db:"uuid"`
+	Name     string     `json:"name,omitempty" db:"name"`
+	Desc     string     `json:"desc,omitempty" db:"desc"`
+	Requests []*Request `json:"requests,omitempty" db:"requests"`
 }
 
+// NewGroup creates and initializes a new Group instance with the specified name.
 func NewGroup(name string) *Group {
 	return &Group{
 		Name:     name,
@@ -57,20 +61,22 @@ func (group *Group) Description() string {
 func (group *Group) ListItems() []list.Item {
 	var items []list.Item
 
-	for _, r := range group.Requests {
-		items = append(items, r)
+	for _, req := range group.Requests {
+		items = append(items, req)
 	}
 
 	return items
 }
 
-func (group *Group) AddRequest(r *Request) {
-	group.Requests = append(group.Requests, r)
+// AddRequest appends a request to the group's collection.
+func (group *Group) AddRequest(req *Request) {
+	group.Requests = append(group.Requests, req)
 }
 
-func (group *Group) RemoveRequest(r *Request) {
+// RemoveRequest removes a specific request from the group's collection.
+func (group *Group) RemoveRequest(targetReq *Request) {
 	for i, req := range group.Requests {
-		if req == r {
+		if req == targetReq {
 			group.Requests = append(group.Requests[:i], group.Requests[i+1:]...)
 			break
 		}

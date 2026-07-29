@@ -35,21 +35,20 @@ const (
 )
 
 var (
-	AppScope = gap.NewScope(gap.User, "go-rest")
+	appScope = gap.NewScope(gap.User, "go-rest")
 
 	config = new(Config)
 )
 
 // Config is the configuration for the client.
 type Config struct {
+	DebugEnabled bool `json:"debug_enabled" mapstructure:"debug_enabled"`
 	// DataDir is the directory where request and environment data is stored.
 	DataDir string `json:"data_dir,omitempty" mapstructure:"data_dir"`
-	// DefaultEnv is the name of the environment to use by default whenever a new session is started.
-	DefaultEnv string `json:"default_env,omitempty" mapstructure:"default_env"`
 	// ColorScheme sets which color scheme will be used.
 	ColorScheme string `json:"color_scheme,omitempty" mapstructure:"color_scheme"`
 	// Log is the configuration for logging.
-	Log Log `json:"log,omitempty" mapstructure:"log"`
+	Log Log `json:"log,omitzero" mapstructure:"log"`
 }
 
 // Log contains all configuration options for logging.
@@ -96,14 +95,14 @@ func setDefaults() error {
 	viper.SetDefault("color_scheme", "default")
 
 	// config file
-	filepath, err := AppScope.ConfigPath(defaultFile)
+	filepath, err := appScope.ConfigPath(defaultFile)
 	if err != nil {
 		return fmt.Errorf("default file: %w", err)
 	}
 	viper.SetDefault("config", filepath)
 
 	// data directory
-	dirs, err := AppScope.DataDirs()
+	dirs, err := appScope.DataDirs()
 	if err != nil {
 		return fmt.Errorf("finding app data directories: %w", err)
 	}
@@ -114,7 +113,7 @@ func setDefaults() error {
 	viper.SetDefault("data_dir", dirs[0])
 
 	// log path
-	logPath, err := AppScope.LogPath("go-rest.log")
+	logPath, err := appScope.LogPath("go-rest.log")
 	if err != nil {
 		return fmt.Errorf("log path: %w", err)
 	}
@@ -127,14 +126,22 @@ func setDefaults() error {
 	return nil
 }
 
-func Logging() Log {
+// LoggingConfig returns the current logging configuration settings.
+func LoggingConfig() Log {
 	return config.Log
 }
 
+// DataDir returns the path to the application data directory.
 func DataDir() string {
 	return config.DataDir
 }
 
+// ColorScheme returns the configured TUI color scheme name.
 func ColorScheme() string {
 	return config.ColorScheme
+}
+
+// DebugEnabled returns whether development debug mode is enabled.
+func DebugEnabled() bool {
+	return config.DebugEnabled
 }

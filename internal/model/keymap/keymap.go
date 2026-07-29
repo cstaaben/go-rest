@@ -19,9 +19,8 @@
 package keymap
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
 )
 
 var (
@@ -29,20 +28,24 @@ var (
 
 	Default = &KeyMap{
 		Quit: key.NewBinding(
-			key.WithKeys(tea.KeyCtrlQ.String()),
-			key.WithHelp(tea.KeyCtrlQ.String(), "Quit"),
+			key.WithKeys("ctrl+q"),
+			key.WithHelp("ctrl+q", "Quit"),
 		),
 		Send: key.NewBinding(
-			key.WithKeys("Ctrl+Enter"),
-			key.WithHelp("Ctrl+Enter", "Send request"),
+			key.WithKeys("ctrl+enter"),
+			key.WithHelp("ctrl+enter", "Send request"),
 		),
 		NextPane: key.NewBinding(
-			key.WithKeys(tea.KeyTab.String()),
-			key.WithHelp(tea.KeyTab.String(), "Next Pane"),
+			key.WithKeys("tab"),
+			key.WithHelp("tab", "Next Pane"),
 		),
 		PreviousPane: key.NewBinding(
-			key.WithKeys(tea.KeyShiftTab.String()),
-			key.WithHelp(tea.KeyShiftTab.String(), "Previous Pane"),
+			key.WithKeys("shift+tab"),
+			key.WithHelp("shift+tab", "Previous Pane"),
+		),
+		SwitchViews: key.NewBinding(
+			key.WithKeys("ctrl+e"),
+			key.WithHelp("ctrl+e", "Switch Views"),
 		),
 	}
 )
@@ -55,6 +58,7 @@ type KeyMap struct {
 	// Help         key.Binding
 	NextPane     key.Binding
 	PreviousPane key.Binding
+	SwitchViews  key.Binding
 }
 
 // ShortHelp returns a slice of bindings to be displayed in the short
@@ -70,6 +74,6 @@ func (k *KeyMap) ShortHelp() []key.Binding {
 func (k *KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.NextPane, k.PreviousPane, k.Send},
-		{k.Quit},
+		{k.SwitchViews, k.Quit},
 	}
 }

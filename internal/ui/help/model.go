@@ -1,8 +1,8 @@
 package help
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/help"
+	tea "charm.land/bubbletea/v2"
 	"log/slog"
 
 	"github.com/cstaaben/go-rest/internal/model/keymap"

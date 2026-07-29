@@ -1,10 +1,5 @@
 package target
 
-import (
-	tea "github.com/charmbracelet/bubbletea"
-	"log/slog"
-)
-
 const (
 	/* ClientView targets */
 	RequestsTarget Target = iota
@@ -21,7 +16,7 @@ const (
 	EnvironmentView
 )
 
-var targets = map[View][]Target{
+var viewTargets = map[View][]Target{
 	ClientView: {
 		RequestsTarget,
 		EditorTarget,
@@ -66,108 +61,57 @@ func (v View) String() string {
 	}
 }
 
-// NextTarget returns the next available target in the cycle for v. Reaching the "end" of the cycle will cause the next
+// NextTarget returns the next available target in the cycle for currentView. Reaching the "end" of the cycle will cause the next
 // target to wrap around to the beginning.
-func NextTarget(v View, t Target) Target {
-	if t == targets[v][len(targets[v])-1] {
-		return targets[v][0]
+func NextTarget(currentView View, currentTarget Target) Target {
+	if currentTarget == viewTargets[currentView][len(viewTargets[currentView])-1] {
+		return viewTargets[currentView][0]
 	}
 
-	if v == EnvironmentView {
-		t -= Target(len(targets[ClientView]))
-		return targets[v][t] + 1
+	if currentView == EnvironmentView {
+		currentTarget -= Target(len(viewTargets[ClientView]))
+		return viewTargets[currentView][currentTarget] + 1
 	}
 
-	inc := int64(targets[v][t]) + 1
-	count := int64(len(targets[v]))
+	inc := int64(viewTargets[currentView][currentTarget]) + 1
+	count := int64(len(viewTargets[currentView]))
 	idx := inc % count
 
-	return targets[v][idx]
+	return viewTargets[currentView][idx]
 }
 
-func PrevTarget(v View, t Target) Target {
-	if t == targets[v][0] {
-		return targets[v][len(targets[v])-1]
+// PrevTarget returns the previous available target in the cycle for currentView.
+func PrevTarget(currentView View, currentTarget Target) Target {
+	if currentTarget == viewTargets[currentView][0] {
+		return viewTargets[currentView][len(viewTargets[currentView])-1]
 	}
 
-	if v == EnvironmentView {
-		t -= Target(len(targets[ClientView]))
-		return targets[v][t] - 1
+	if currentView == EnvironmentView {
+		currentTarget -= Target(len(viewTargets[ClientView]))
+		return viewTargets[currentView][currentTarget] - 1
 	}
 
-	dec := int64(targets[v][t]) - 1
-	count := int64(len(targets[v]))
+	dec := int64(viewTargets[currentView][currentTarget]) - 1
+	count := int64(len(viewTargets[currentView]))
 	idx := dec % count
 
-	return targets[v][idx]
+	return viewTargets[currentView][idx]
 }
 
-func NextView(v View) View {
-	delta := targetCount()
-	v -= View(delta) // remove count of targets to use 0-based indices
-
-	inc := int64(v) + 1
-	count := int64(len(targets))
-	return View((inc % count) + delta)
+// NextView advances to the next top-level View in the application cycle.
+func NextView(currentView View) View {
+	inc := int64(currentView) + 1
+	count := int64(len(viewTargets))
+	return View(inc % count)
 }
 
-func PrevView(v View) View {
-	delta := targetCount()
-	v -= View(delta) // remove count of targets to use 0-based indices
-
-	if v == 0 {
-		return View(int64(len(targets)) - 1 + delta)
+// PrevView steps back to the previous top-level View in the application cycle.
+func PrevView(currentView View) View {
+	if currentView == 0 {
+		return View(int64(len(viewTargets)) - 1)
 	}
 
-	dec := int64(v) - 1
-	count := int64(len(targets))
-	return View((dec % count) + delta)
-}
-
-func targetCount() int64 {
-	count := 0
-	for _, v := range targets {
-		count += len(v)
-	}
-
-	return int64(count)
-}
-
-type FocusMsg struct {
-	FocusedView     View
-	FocusedTarget   Target
-	UnfocusedView   View
-	UnfocusedTarget Target
-}
-
-func ChangeFocus(fv View, ft Target, uv View, ut Target) tea.Cmd {
-	// validate both focused and unfocused targets
-	valid := validTarget(fv, ft) && validTarget(uv, ut)
-	if !valid {
-		slog.Warn(
-			"invalid focusedTarget for focusedView",
-			slog.String("focusedTarget", ft.String()),
-			slog.String("focusedView", fv.String()),
-		)
-		return nil
-	}
-
-	return func() tea.Msg {
-		return FocusMsg{
-			FocusedView:     fv,
-			FocusedTarget:   ft,
-			UnfocusedView:   uv,
-			UnfocusedTarget: ut,
-		}
-	}
-}
-
-func validTarget(v View, t Target) bool {
-	for _, target := range targets[v] {
-		if t == target {
-			return true
-		}
-	}
-
-	return false
+	dec := int64(currentView) - 1
+	count := int64(len(viewTargets))
+	return View(dec % count)
 }
