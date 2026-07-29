@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 // FocusedPane indicates which pane currently has user focus.
@@ -62,7 +62,7 @@ type PrototypeModel struct {
 func InitialState() PrototypeModel {
 	ti := textinput.New()
 	ti.CharLimit = 128
-	ti.Width = 30
+	ti.SetWidth(30)
 
 	mockEnvs := []EnvironmentModel{
 		{
@@ -127,7 +127,7 @@ func (m PrototypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 		return m, nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		if m.Mode != ModeNormal {
 			switch msg.String() {
 			case "enter":
@@ -275,7 +275,7 @@ func (m PrototypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View renders the master-detail TUI layout.
-func (m PrototypeModel) View() string {
+func (m PrototypeModel) View() tea.View {
 	leftWidth := 34
 	rightWidth := m.Width - leftWidth - 6
 	if rightWidth < 40 {
@@ -401,16 +401,18 @@ func (m PrototypeModel) View() string {
 
 	helpText := "[Tab] Switch Pane  |  [j/k] Navigate  |  [Space] Activate Env  |  [a] Add  |  [e] Edit Value  |  [d] Delete  |  [s] Toggle Mask  |  [q] Quit"
 
-	return lipgloss.JoinVertical(
+	v := tea.NewView(lipgloss.JoinVertical(
 		lipgloss.Left,
 		mainView,
 		statusStyle.Render(m.StatusMessage),
 		helpStyle.Render(helpText),
-	)
+	))
+	v.AltScreen = true
+	return v
 }
 
 func main() {
-	p := tea.NewProgram(InitialState(), tea.WithAltScreen())
+	p := tea.NewProgram(InitialState())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running prototype: %v\n", err)
 		os.Exit(1)

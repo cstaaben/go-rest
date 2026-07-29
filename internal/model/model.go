@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/key"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/cstaaben/go-rest/internal/database"
 	"github.com/cstaaben/go-rest/internal/model/keymap"
@@ -72,10 +72,7 @@ type Model struct {
 // Init is the first function that will be called. It returns an optional
 // initial command. To not perform an initial command return nil.
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(
-		tea.SetWindowTitle("go-rest"),
-		target.ChangeFocus(target.ClientView, target.RequestsTarget, target.ClientView, target.ResponseTarget),
-	)
+	return target.ChangeFocus(target.ClientView, target.RequestsTarget, target.ClientView, target.ResponseTarget)
 }
 
 // Update is called when a message is received. Use it to inspect messages
@@ -92,7 +89,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// TODO: update ALL subcomponents
 		// TODO: handle resizing in subcomponents, using a percentage of total window size
 		commands = append(commands, m.updateAllComponents(msg)...)
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		commands = append(commands, m.handleKey(msg))
 	case notify.Msg:
 		panic("notifications not handled") // TODO: display notification popup
@@ -180,15 +177,18 @@ func (m *Model) updateComponent(view target.View, t target.Target, msg tea.Msg) 
 	return targetCmd
 }
 
-// View renders the program's UI, which is just a string. The view is
+// View renders the program's UI. The view is
 // rendered after every Update.
-func (m *Model) View() string {
+func (m *Model) View() tea.View {
 	s := lipgloss.JoinHorizontal(lipgloss.Top, m.Requests.View(), m.Editor.View())
 	// s = lipgloss.JoinVertical(lipgloss.Left, s, m.Help.View())
-	return s
+	v := tea.NewView(s)
+	v.AltScreen = true
+	v.WindowTitle = "go-rest"
+	return v
 }
 
-func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
+func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, m.Keys.Quit):
 		slog.Debug("quit key pressed")

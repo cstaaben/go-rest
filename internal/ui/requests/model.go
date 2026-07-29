@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/muesli/reflow/wordwrap"
 
 	"github.com/cstaaben/go-rest/internal/database"
@@ -41,29 +41,6 @@ const (
 	defaultListWidth  = 50
 	defaultListHeight = 100
 )
-
-// var keys = viewport.KeyMap{
-// 	PageDown: key.NewBinding(
-// 		key.WithKeys(tea.KeyPgDown.String(), "J"),
-// 		key.WithHelp(tea.KeyPgDown.String(), "Scroll Down"),
-// 		key.WithHelp("J", "Scroll Down"),
-// 	),
-// 	PageUp: key.NewBinding(
-// 		key.WithKeys(tea.KeyPgUp.String(), "K"),
-// 		key.WithHelp(tea.KeyPgUp.String(), "Scroll Up"),
-// 		key.WithHelp("K", "Scroll Up"),
-// 	),
-// 	Down: key.NewBinding(
-// 		key.WithKeys(tea.KeyDown.String(), "j"),
-// 		key.WithHelp(tea.KeyDown.String(), "Move Cursor Down"),
-// 		key.WithHelp("j", "Move Cursor Down"),
-// 	),
-// 	Up: key.NewBinding(
-// 		key.WithKeys(tea.KeyUp.String(), "k"),
-// 		key.WithHelp(tea.KeyUp.String(), "Move Cursor Up"),
-// 		key.WithHelp("k", "Move Cursor Up"),
-// 	),
-// }
 
 // Model is the collection of requests loaded by the user and TUI components to display them.
 type Model struct {
@@ -138,7 +115,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.List.SetSize(defaultListWidth-h, msg.Height-v)
 		// m.Style.Height(msg.Height - v)
 		m.Style.Width(defaultListWidth - h)
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		cmd := m.handleKey(msg)
 		commands = append(commands, cmd)
 	}
@@ -150,13 +127,13 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(commands...)
 }
 
-func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
+func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg.String() {
-	case "j", tea.KeyDown.String():
+	case "j", "down":
 		m.List.CursorDown()
-	case "k", tea.KeyUp.String():
+	case "k", "up":
 		m.List.CursorUp()
 	}
 

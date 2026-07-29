@@ -19,14 +19,8 @@
 package request
 
 import (
-	"fmt"
-	"io/fs"
-	"os"
-	"strings"
-
 	"github.com/cstaaben/go-rest/internal/database"
 	"github.com/cstaaben/go-rest/internal/database/dto"
-	"sigs.k8s.io/yaml"
 )
 
 const UnsortedName = "unsorted"
@@ -61,26 +55,3 @@ func LoadFrom(_ *database.DAO) ([]*dto.Group, error) {
 	// return groups, nil
 }
 
-func findRequestDir(entries []fs.DirEntry) (string, error) {
-	for _, entry := range entries {
-		if entry.IsDir() && strings.EqualFold(entry.Name(), "requests") {
-			return entry.Name(), nil
-		}
-	}
-
-	return "", os.ErrNotExist
-}
-
-func loadRequests(filepath string) (*dto.Group, error) {
-	body, err := os.ReadFile(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("reading file: %w", err)
-	}
-
-	g := new(dto.Group)
-	if err = yaml.Unmarshal(body, g); err != nil {
-		return nil, fmt.Errorf("parsing file: %w", err)
-	}
-
-	return g, nil
-}

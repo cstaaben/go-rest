@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -64,7 +64,7 @@ type PrototypeModel struct {
 func InitialState() PrototypeModel {
 	ti := textinput.New()
 	ti.CharLimit = 64
-	ti.Width = 32
+	ti.SetWidth(32)
 
 	mockEnvs := []EnvironmentModel{
 		{
@@ -128,7 +128,7 @@ func (m PrototypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 		return m, nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		// Handle Create Environment Modal Mode
 		if m.Mode == ModeCreateEnvModal {
 			switch msg.String() {
@@ -432,7 +432,7 @@ func overlayModal(baseContent string, modal string, totalWidth int, totalHeight 
 }
 
 // View renders the master-detail TUI layout, overlaying the modal if active.
-func (m PrototypeModel) View() string {
+func (m PrototypeModel) View() tea.View {
 	leftWidth := 34
 	rightWidth := m.Width - leftWidth - 6
 	if rightWidth < 40 {
@@ -564,17 +564,22 @@ func (m PrototypeModel) View() string {
 		helpStyle.Render(helpText),
 	)
 
+	var s string
 	// If Create Environment Modal is active, composite the modal on top of baseLayout using x/ansi
 	if m.Mode == ModeCreateEnvModal {
 		modalView := renderNewEnvModal(m.Input.View())
-		return overlayModal(baseLayout, modalView, m.Width, m.Height)
+		s = overlayModal(baseLayout, modalView, m.Width, m.Height)
+	} else {
+		s = baseLayout
 	}
 
-	return baseLayout
+	v := tea.NewView(s)
+	v.AltScreen = true
+	return v
 }
 
 func main() {
-	p := tea.NewProgram(InitialState(), tea.WithAltScreen())
+	p := tea.NewProgram(InitialState())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running prototype: %v\n", err)
 		os.Exit(1)

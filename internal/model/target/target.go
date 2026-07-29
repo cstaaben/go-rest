@@ -98,32 +98,17 @@ func PrevTarget(v View, t Target) Target {
 }
 
 func NextView(v View) View {
-	delta := targetCount()
-	v -= View(delta) // remove count of targets to use 0-based indices
-
 	inc := int64(v) + 1
 	count := int64(len(viewTargets))
-	return View((inc % count) + delta)
+	return View(inc % count)
 }
 
 func PrevView(v View) View {
-	delta := targetCount()
-	v -= View(delta) // remove count of targets to use 0-based indices
-
 	if v == 0 {
-		return View(int64(len(viewTargets)) - 1 + delta)
+		return View(int64(len(viewTargets)) - 1)
 	}
 
 	dec := int64(v) - 1
 	count := int64(len(viewTargets))
-	return View((dec % count) + delta)
-}
-
-func targetCount() int64 {
-	count := 0
-	for _, v := range viewTargets {
-		count += len(v)
-	}
-
-	return int64(count)
+	return View(dec % count)
 }

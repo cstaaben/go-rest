@@ -1,7 +1,7 @@
 package notify
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/cstaaben/go-rest/internal/config"
 )
 

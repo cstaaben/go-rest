@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	flag "github.com/spf13/pflag"
 
 	"github.com/cstaaben/go-rest/internal/config"
@@ -80,7 +80,7 @@ func run(ctx context.Context) error {
 	}
 	defer dbx.Close()
 
-	p := tea.NewProgram(model.New(dbx), tea.WithAltScreen(), tea.WithContext(ctx))
+	p := tea.NewProgram(model.New(dbx), tea.WithContext(ctx))
 	if _, err := p.Run(); err != nil {
 		slog.Error("Unexpected error running program", slogutils.Err(err))
 		return err

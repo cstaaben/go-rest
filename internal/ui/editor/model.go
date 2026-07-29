@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textarea"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/cstaaben/go-rest/internal/database"
 	"github.com/cstaaben/go-rest/internal/database/dto"
@@ -39,8 +39,11 @@ type Model struct {
 func New(db *database.DAO) *Model {
 	urlInput := textinput.New()
 	urlInput.Placeholder = "URL"
-	urlInput.PlaceholderStyle = styles.Title
-	urlInput.Width = defaultWidth
+	st := urlInput.Styles()
+	st.Focused.Placeholder = styles.Title
+	st.Blurred.Placeholder = styles.Title
+	urlInput.SetStyles(st)
+	urlInput.SetWidth(defaultWidth)
 	urlInput.EchoMode = textinput.EchoNormal
 	urlInput.CursorStart()
 	urlInput.Validate = func(text string) error {

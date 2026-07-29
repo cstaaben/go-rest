@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/google/uuid"
 
 	"github.com/cstaaben/go-rest/internal/database"
@@ -70,14 +70,14 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		cmd = tea.Batch(cmd, m.handleKeyPress(msg))
 	}
 
 	return m, cmd // TODO: Implement
 }
 
-func (m *Model) handleKeyPress(msg tea.KeyMsg) tea.Cmd {
+func (m *Model) handleKeyPress(msg tea.KeyPressMsg) tea.Cmd {
 	switch {
 	// NOTE: should only handle keys specific to the components of this view
 	case msg.String() == "a":

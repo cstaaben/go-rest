@@ -1,7 +1,9 @@
 package styles
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"image/color"
+
+	"charm.land/lipgloss/v2"
 
 	"github.com/cstaaben/go-rest/internal/config"
 )
@@ -14,20 +16,14 @@ var (
 
 	colors        *ColorScheme
 	defaultColors = ColorScheme{
-		FocusHighlight: lipgloss.AdaptiveColor{
-			Light: "#5fffff",
-			Dark:  "#5fffff",
-		},
-		Foreground: lipgloss.AdaptiveColor{
-			Light: "#000000",
-			Dark:  "#ffffff",
-		},
+		FocusHighlight: lipgloss.Color("#5fffff"),
+		Foreground:     lipgloss.Color("#ffffff"),
 	}
 )
 
 type ColorScheme struct {
-	FocusHighlight lipgloss.AdaptiveColor
-	Foreground     lipgloss.AdaptiveColor
+	FocusHighlight color.Color
+	Foreground     color.Color
 }
 
 func Colors() *ColorScheme {
