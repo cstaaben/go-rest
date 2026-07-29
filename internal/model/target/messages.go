@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+// FocusMsg is dispatched when UI focus shifts between views or subcomponent targets.
 type FocusMsg struct {
 	FocusedView     View
 	FocusedTarget   Target
@@ -37,6 +38,6 @@ func ChangeFocus(focusedView View, focusedTarget Target, unfocusedView View, unf
 	}
 }
 
-func validTarget(v View, t Target) bool {
-	return slices.Contains(viewTargets[v], t)
+func validTarget(currentView View, targetItem Target) bool {
+	return slices.Contains(viewTargets[currentView], targetItem)
 }
