@@ -14,24 +14,25 @@ type FocusMsg struct {
 	UnfocusedTarget Target
 }
 
-func ChangeFocus(fv View, ft Target, uv View, ut Target) tea.Cmd {
+// ChangeFocus constructs a command returning a FocusMsg to update focus between views and targets.
+func ChangeFocus(focusedView View, focusedTarget Target, unfocusedView View, unfocusedTarget Target) tea.Cmd {
 	// validate both focused and unfocused targets
-	valid := validTarget(fv, ft) && validTarget(uv, ut)
+	valid := validTarget(focusedView, focusedTarget) && validTarget(unfocusedView, unfocusedTarget)
 	if !valid {
 		slog.Warn(
 			"invalid focusedTarget for focusedView",
-			slog.String("focusedTarget", ft.String()),
-			slog.String("focusedView", fv.String()),
+			slog.String("focusedTarget", focusedTarget.String()),
+			slog.String("focusedView", focusedView.String()),
 		)
 		return nil
 	}
 
 	return func() tea.Msg {
 		return FocusMsg{
-			FocusedView:     fv,
-			FocusedTarget:   ft,
-			UnfocusedView:   uv,
-			UnfocusedTarget: ut,
+			FocusedView:     focusedView,
+			FocusedTarget:   focusedTarget,
+			UnfocusedView:   unfocusedView,
+			UnfocusedTarget: unfocusedTarget,
 		}
 	}
 }

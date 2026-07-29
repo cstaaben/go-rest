@@ -24,6 +24,7 @@ import (
 	"reflect"
 )
 
+// Request represents an individual HTTP request configuration and its payload.
 type Request struct {
 	UUID      string `json:"uuid"`
 	Name      string `json:"name,omitempty"`
@@ -32,6 +33,7 @@ type Request struct {
 	Data      *Data  `json:"data,omitempty"`
 }
 
+// Data holds the target URL, HTTP method, headers, protocol version, body, and response payload.
 type Data struct {
 	URL      string              `json:"url,omitempty"`
 	Headers  map[string][]string `json:"headers,omitempty"`
@@ -47,18 +49,22 @@ func (r *Request) FilterValue() string {
 	return r.Name
 }
 
+// Title returns the display name of the request.
 func (r *Request) Title() string {
 	return r.Name
 }
 
+// Description returns the detailed description of the request.
 func (r *Request) Description() string {
 	return r.Desc
 }
 
+// Equal returns true if two Request DTO instances are structurally identical.
 func (r *Request) Equal(other *Request) bool {
 	return reflect.DeepEqual(r, other)
 }
 
+// RequestListData contains database view data for rendering requests and group headers in lists.
 type RequestListData struct {
 	RequestID     string         `db:"request_id"`
 	RequestName   string         `db:"request_name"`
@@ -69,10 +75,12 @@ type RequestListData struct {
 	GroupDesc     sql.NullString `db:"group_desc"`
 }
 
+// RequestDescription returns the string value of the request description null-string.
 func (r *RequestListData) RequestDescription() string {
 	return r.RequestDesc.String
 }
 
+// GroupDescription returns the string value of the group description null-string.
 func (r *RequestListData) GroupDescription() string {
 	return r.GroupDesc.String
 }

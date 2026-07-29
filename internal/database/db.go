@@ -43,8 +43,10 @@ import (
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
+// ErrNotFound is returned when a requested record is not present in the database.
 var ErrNotFound = errors.New("not found")
 
+// DAO provides data access methods and manages database statement lifecycles.
 type DAO struct {
 	db *sqlx.DB
 
@@ -99,7 +101,7 @@ func New(ctx context.Context) (*DAO, error) {
 	return db, nil
 }
 
-// TODO: check version before running migrations?
+// runMigrations executes embedded SQL migrations against the SQLite database.
 func (dao *DAO) runMigrations(ctx context.Context) error {
 	goose.SetBaseFS(migrationsFS)
 
@@ -116,6 +118,7 @@ func (dao *DAO) runMigrations(ctx context.Context) error {
 	return nil
 }
 
+// prepareQueries pre-compiles prepared SQL statements used by the DAO methods.
 func (dao *DAO) prepareQueries(ctx context.Context) error {
 	var err error
 
@@ -216,6 +219,7 @@ func (dao *DAO) RequestListData(ctx context.Context, limit, offset int) ([]*dto.
 	return dest, nil
 }
 
+// requestRow represents a database row mapping for a request entity.
 type requestRow struct {
 	UUID      string `db:"uuid"`
 	Name      string `db:"name"`
@@ -228,6 +232,7 @@ type requestRow struct {
 	Body      string `db:"body"`
 }
 
+// toDTO converts a requestRow database row into a Request DTO instance.
 func (row *requestRow) toDTO() *dto.Request {
 	var headers map[string][]string
 	if row.Headers != "" {

@@ -126,18 +126,22 @@ func setDefaults() error {
 	return nil
 }
 
+// LoggingConfig returns the current logging configuration settings.
 func LoggingConfig() Log {
 	return config.Log
 }
 
+// DataDir returns the path to the application data directory.
 func DataDir() string {
 	return config.DataDir
 }
 
+// ColorScheme returns the configured TUI color scheme name.
 func ColorScheme() string {
 	return config.ColorScheme
 }
 
+// DebugEnabled returns whether development debug mode is enabled.
 func DebugEnabled() bool {
 	return config.DebugEnabled
 }

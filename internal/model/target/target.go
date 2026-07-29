@@ -61,54 +61,57 @@ func (v View) String() string {
 	}
 }
 
-// NextTarget returns the next available target in the cycle for v. Reaching the "end" of the cycle will cause the next
+// NextTarget returns the next available target in the cycle for currentView. Reaching the "end" of the cycle will cause the next
 // target to wrap around to the beginning.
-func NextTarget(v View, t Target) Target {
-	if t == viewTargets[v][len(viewTargets[v])-1] {
-		return viewTargets[v][0]
+func NextTarget(currentView View, currentTarget Target) Target {
+	if currentTarget == viewTargets[currentView][len(viewTargets[currentView])-1] {
+		return viewTargets[currentView][0]
 	}
 
-	if v == EnvironmentView {
-		t -= Target(len(viewTargets[ClientView]))
-		return viewTargets[v][t] + 1
+	if currentView == EnvironmentView {
+		currentTarget -= Target(len(viewTargets[ClientView]))
+		return viewTargets[currentView][currentTarget] + 1
 	}
 
-	inc := int64(viewTargets[v][t]) + 1
-	count := int64(len(viewTargets[v]))
+	inc := int64(viewTargets[currentView][currentTarget]) + 1
+	count := int64(len(viewTargets[currentView]))
 	idx := inc % count
 
-	return viewTargets[v][idx]
+	return viewTargets[currentView][idx]
 }
 
-func PrevTarget(v View, t Target) Target {
-	if t == viewTargets[v][0] {
-		return viewTargets[v][len(viewTargets[v])-1]
+// PrevTarget returns the previous available target in the cycle for currentView.
+func PrevTarget(currentView View, currentTarget Target) Target {
+	if currentTarget == viewTargets[currentView][0] {
+		return viewTargets[currentView][len(viewTargets[currentView])-1]
 	}
 
-	if v == EnvironmentView {
-		t -= Target(len(viewTargets[ClientView]))
-		return viewTargets[v][t] - 1
+	if currentView == EnvironmentView {
+		currentTarget -= Target(len(viewTargets[ClientView]))
+		return viewTargets[currentView][currentTarget] - 1
 	}
 
-	dec := int64(viewTargets[v][t]) - 1
-	count := int64(len(viewTargets[v]))
+	dec := int64(viewTargets[currentView][currentTarget]) - 1
+	count := int64(len(viewTargets[currentView]))
 	idx := dec % count
 
-	return viewTargets[v][idx]
+	return viewTargets[currentView][idx]
 }
 
-func NextView(v View) View {
-	inc := int64(v) + 1
+// NextView advances to the next top-level View in the application cycle.
+func NextView(currentView View) View {
+	inc := int64(currentView) + 1
 	count := int64(len(viewTargets))
 	return View(inc % count)
 }
 
-func PrevView(v View) View {
-	if v == 0 {
+// PrevView steps back to the previous top-level View in the application cycle.
+func PrevView(currentView View) View {
+	if currentView == 0 {
 		return View(int64(len(viewTargets)) - 1)
 	}
 
-	dec := int64(v) - 1
+	dec := int64(currentView) - 1
 	count := int64(len(viewTargets))
 	return View(dec % count)
 }

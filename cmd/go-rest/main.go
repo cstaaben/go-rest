@@ -56,6 +56,7 @@ func main() {
 	}
 }
 
+// run initializes configuration, logging, database connections, and launches the TUI program.
 func run(ctx context.Context) error {
 	flag.Parse()
 
@@ -74,13 +75,13 @@ func run(ctx context.Context) error {
 
 	slog.Debug("Starting client", slog.String("colorscheme", config.ColorScheme()))
 
-	dbx, err := database.New(ctx)
+	dbDAO, err := database.New(ctx)
 	if err != nil {
 		return err
 	}
-	defer dbx.Close()
+	defer dbDAO.Close()
 
-	p := tea.NewProgram(model.New(dbx), tea.WithContext(ctx))
+	p := tea.NewProgram(model.New(dbDAO), tea.WithContext(ctx))
 	if _, err := p.Run(); err != nil {
 		slog.Error("Unexpected error running program", slogutils.Err(err))
 		return err

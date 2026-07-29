@@ -41,6 +41,7 @@ import (
 
 var _ tea.Model = (*Model)(nil)
 
+// New creates and returns a new root TUI Model initialized with all subcomponents.
 func New(db *database.DAO) *Model {
 	m := &Model{
 		DB:           db,
@@ -55,8 +56,10 @@ func New(db *database.DAO) *Model {
 	return m
 }
 
+// Model represents the global root state of the TUI application.
 type Model struct {
-	DB            *database.DAO // TODO: determine if needed
+	// DB is the data access object for SQLite queries.
+	DB            *database.DAO
 	CurrentTarget target.Target
 	CurrentView   target.View
 	Keys          *keymap.KeyMap
@@ -84,49 +87,63 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case target.FocusMsg:
 		// focus new target
 		commands = append(commands, m.updateFocus(msg))
-		// TODO: in subcomponents, call function to update help keymap
 	case tea.WindowSizeMsg:
-		// TODO: update ALL subcomponents
-		// TODO: handle resizing in subcomponents, using a percentage of total window size
 		commands = append(commands, m.updateAllComponents(msg)...)
 	case tea.KeyPressMsg:
 		commands = append(commands, m.handleKey(msg))
 	case notify.Msg:
-		panic("notifications not handled") // TODO: display notification popup
+		slog.Info("notification received", slog.String("message", msg.Message), slog.Any("level", msg.Level))
+	case *notify.Msg:
+		if msg != nil {
+			slog.Info("notification received", slog.String("message", msg.Message), slog.Any("level", msg.Level))
+		}
 	case error:
-		panic("need to handle error: " + msg.Error())
+		slog.Error("error message received in root update loop", slog.Any("error", msg))
 	}
 
 	return m, tea.Batch(commands...)
 }
 
 func (m *Model) updateAllComponents(msg tea.WindowSizeMsg) []tea.Cmd {
-	var helpCmd tea.Cmd
-	m.Help, helpCmd = m.Help.Update(msg)
+	var commands []tea.Cmd
 
-	var envCmd tea.Cmd
-	m.Environments, envCmd = m.Environments.Update(msg)
-
-	var envEditorCmd tea.Cmd
-	m.EnvEditor, envEditorCmd = m.EnvEditor.Update(msg)
-
-	var reqCmd tea.Cmd
-	m.Requests, reqCmd = m.Requests.Update(msg)
-
-	var editorCmd tea.Cmd
-	m.Editor, editorCmd = m.Editor.Update(msg)
-
-	var respCmd tea.Cmd
-	m.Response, respCmd = m.Response.Update(msg)
-
-	return []tea.Cmd{
-		helpCmd,
-		envCmd,
-		envEditorCmd,
-		reqCmd,
-		editorCmd,
-		respCmd,
+	if m.Help != nil {
+		var helpCmd tea.Cmd
+		m.Help, helpCmd = m.Help.Update(msg)
+		commands = append(commands, helpCmd)
 	}
+
+	if m.Environments != nil {
+		var envCmd tea.Cmd
+		m.Environments, envCmd = m.Environments.Update(msg)
+		commands = append(commands, envCmd)
+	}
+
+	if m.EnvEditor != nil {
+		var envEditorCmd tea.Cmd
+		m.EnvEditor, envEditorCmd = m.EnvEditor.Update(msg)
+		commands = append(commands, envEditorCmd)
+	}
+
+	if m.Requests != nil {
+		var reqCmd tea.Cmd
+		m.Requests, reqCmd = m.Requests.Update(msg)
+		commands = append(commands, reqCmd)
+	}
+
+	if m.Editor != nil {
+		var editorCmd tea.Cmd
+		m.Editor, editorCmd = m.Editor.Update(msg)
+		commands = append(commands, editorCmd)
+	}
+
+	if m.Response != nil {
+		var respCmd tea.Cmd
+		m.Response, respCmd = m.Response.Update(msg)
+		commands = append(commands, respCmd)
+	}
+
+	return commands
 }
 
 func (m *Model) updateFocus(msg target.FocusMsg) tea.Cmd {
@@ -145,9 +162,11 @@ func (m *Model) updateFocus(msg target.FocusMsg) tea.Cmd {
 	}
 
 	// always update the help output to reflect the current target
-	var cmd tea.Cmd
-	m.Help, cmd = m.Help.Update(msg)
-	commands = append(commands, cmd)
+	if m.Help != nil {
+		var cmd tea.Cmd
+		m.Help, cmd = m.Help.Update(msg)
+		commands = append(commands, cmd)
+	}
 
 	return tea.Batch(commands...)
 }
@@ -159,18 +178,28 @@ func (m *Model) updateComponent(view target.View, t target.Target, msg tea.Msg) 
 	case target.ClientView:
 		switch t {
 		case target.RequestsTarget:
-			m.Requests, targetCmd = m.Requests.Update(msg)
+			if m.Requests != nil {
+				m.Requests, targetCmd = m.Requests.Update(msg)
+			}
 		case target.EditorTarget:
-			m.Editor, targetCmd = m.Editor.Update(msg)
+			if m.Editor != nil {
+				m.Editor, targetCmd = m.Editor.Update(msg)
+			}
 		case target.ResponseTarget:
-			m.Response, targetCmd = m.Response.Update(msg)
+			if m.Response != nil {
+				m.Response, targetCmd = m.Response.Update(msg)
+			}
 		}
 	case target.EnvironmentView:
 		switch t {
 		case target.EnvironmentsTarget:
-			m.Environments, targetCmd = m.Environments.Update(msg)
+			if m.Environments != nil {
+				m.Environments, targetCmd = m.Environments.Update(msg)
+			}
 		case target.EnvEditorTarget:
-			m.EnvEditor, targetCmd = m.EnvEditor.Update(msg)
+			if m.EnvEditor != nil {
+				m.EnvEditor, targetCmd = m.EnvEditor.Update(msg)
+			}
 		}
 	}
 
@@ -180,9 +209,27 @@ func (m *Model) updateComponent(view target.View, t target.Target, msg tea.Msg) 
 // View renders the program's UI. The view is
 // rendered after every Update.
 func (m *Model) View() tea.View {
-	s := lipgloss.JoinHorizontal(lipgloss.Top, m.Requests.View(), m.Editor.View())
-	// s = lipgloss.JoinVertical(lipgloss.Left, s, m.Help.View())
-	v := tea.NewView(s)
+	var body string
+	switch m.CurrentView {
+	case target.EnvironmentView:
+		if m.Environments != nil {
+			body = m.Environments.View()
+		}
+	case target.ClientView:
+		fallthrough
+	default:
+		reqView := ""
+		if m.Requests != nil {
+			reqView = m.Requests.View()
+		}
+		editorView := ""
+		if m.Editor != nil {
+			editorView = m.Editor.View()
+		}
+		body = lipgloss.JoinHorizontal(lipgloss.Top, reqView, editorView)
+	}
+
+	v := tea.NewView(body)
 	v.AltScreen = true
 	v.WindowTitle = "go-rest"
 	return v
